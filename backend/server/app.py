@@ -1,10 +1,12 @@
 import logging
 import time
 from argparse import ArgumentParser
-from flask import Flask
+from flask import Flask, render_template, session, copy_current_request_context
+from flask_socketio import SocketIO, emit, disconnect
 from functools import wraps
-from pathlib import Path
 from gqlalchemy import Memgraph
+from pathlib import Path
+from threading import Lock
 
 
 log = logging.getLogger(__name__)
@@ -47,6 +49,10 @@ def connect_to_memgraph():
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, async_mode=None, cors_allowed_origins="*")
+thread = None
+thread_lock = Lock()
 
 
 def log_time(func):
@@ -79,14 +85,42 @@ def import_data():
 @app.route("/", methods=["GET"])
 def index():
     # import_data()
-    return "<p>Hello, World!</p>"
+    return render_template('index.html',
+                           sync_mode=socketio.async_mode)
+
+
+@socketio.on('my_event', namespace='/test')
+def test_message(message):
+    session['receive_count'] = session.get('receive_count', 0) + 1
+    emit('my_response',
+         {'data': message['data'], 'count': session['receive_count']})
+
+
+@socketio.on('my_broadcast_event', namespace='/test')
+def test_broadcast_message(message):
+    session['receive_count'] = session.get('receive_count', 0) + 1
+    emit('my_response',
+         {'data': message['data'], 'count': session['receive_count']},
+         broadcast=True)
+
+
+@socketio.on('disconnect_request', namespace='/test')
+def disconnect_request():
+    @copy_current_request_context
+    def can_disconnect():
+        disconnect()
+
+    session['receive_count'] = session.get('receive_count', 0) + 1
+    emit('my_response',
+         {'data': 'Disconnected!', 'count': session['receive_count']},
+         callback=can_disconnect)
 
 
 def main():
     init_log()
     args = parse_args()
     connect_to_memgraph()
-    app.run(host=args.host, port=args.port, debug=args.debug)
+    socketio.run(app, host=args.host, port=args.port, debug=args.debug)
 
 
 if __name__ == "__main__":
