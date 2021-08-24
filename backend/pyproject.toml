@@ -11,6 +11,8 @@ Flask-SocketIO = "4.3.1"
 python-engineio = "3.13.2"
 python-socketio = "4.6.0"
 gqlalchemy = "^1.0.5"
+kafka-python = "^2.0.2"
+Flask-Cors = "^3.0.10"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

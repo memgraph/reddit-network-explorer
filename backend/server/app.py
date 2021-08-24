@@ -1,13 +1,17 @@
 import logging
 import time
 from argparse import ArgumentParser
-from flask import Flask, render_template, session, copy_current_request_context
-from flask_socketio import SocketIO, emit, disconnect
+from flask import Flask, render_template
+from flask_cors import CORS, cross_origin
+from flask_socketio import SocketIO, emit
 from functools import wraps
 from gqlalchemy import Memgraph
 from pathlib import Path
-from threading import Lock
+from kafka import KafkaProducer, KafkaConsumer, TopicPartition
+import uuid
 
+BOOTSTRAP_SERVERS = 'kafka:9092'
+TOPIC_NAME = 'stackbox'
 
 log = logging.getLogger(__name__)
 
@@ -50,9 +54,9 @@ def connect_to_memgraph():
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, async_mode=None, cors_allowed_origins="*")
-thread = None
-thread_lock = Lock()
+socketio = SocketIO(app, cors_allowed_origins="*")
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 
 def log_time(func):
@@ -83,37 +87,48 @@ def import_data():
 
 
 @app.route("/", methods=["GET"])
+@cross_origin()
 def index():
     # import_data()
-    return render_template('index.html',
-                           sync_mode=socketio.async_mode)
+    log.info("hello")
+    return render_template('index.html')
 
 
-@socketio.on('my_event', namespace='/test')
-def test_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']})
+@socketio.on('connect', namespace='/kafka')
+def test_connect():
+    emit('logs', {'data': 'Connection established'})
 
 
-@socketio.on('my_broadcast_event', namespace='/test')
-def test_broadcast_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']},
-         broadcast=True)
+@socketio.on('kafkaproducer', namespace="/kafka")
+def kafkaproducer(message):
+    log.info("Received: " + message)
+    producer = KafkaProducer(bootstrap_servers=BOOTSTRAP_SERVERS,
+                             api_version=(0, 11, 5))
+    producer.send(TOPIC_NAME, value=bytes(str(message),
+                                          encoding='utf-8'), key=bytes(str(uuid.uuid4()),
+                                                                       encoding='utf-8'))
+    emit('logs', {'data': 'Added ' + message + ' to topic'})
+    emit('kafkaproducer', {'data': message})
+    producer.close()
+    kafkaconsumer(message)
 
 
-@socketio.on('disconnect_request', namespace='/test')
-def disconnect_request():
-    @copy_current_request_context
-    def can_disconnect():
-        disconnect()
-
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': 'Disconnected!', 'count': session['receive_count']},
-         callback=can_disconnect)
+@socketio.on('kafkaconsumer', namespace="/kafka")
+def kafkaconsumer(message):
+    consumer = KafkaConsumer(group_id='consumer-1',
+                             bootstrap_servers=BOOTSTRAP_SERVERS)
+    tp = TopicPartition(TOPIC_NAME, 0)
+    consumer.assign([tp])
+    consumer.seek_to_end(tp)
+    lastOffset = consumer.position(tp)
+    consumer.seek_to_beginning(tp)
+    emit('kafkaconsumer1', {'data': ''})
+    for message in consumer:
+        emit('kafkaconsumer',
+             {'data': message.value.decode('utf8')})
+        if message.offset == lastOffset - 1:
+            break
+    consumer.close()
 
 
 def main():
