@@ -60,13 +60,13 @@ def log_time(func):
     return wrapper
 
 
-# TODO: Add data import query
+# TODO: Change data import query and add import files to /memgraph/import-data
 @log_time
 def import_data():
     """Load data into the database."""
     try:
         memgraph.drop_database()
-        path = Path("/usr/lib/memgraph/import-data/karate_club.csv")
+        path = Path("/usr/lib/memgraph/import-data/import_file.csv")
 
         memgraph.execute_query(
             f"""LOAD CSV FROM "{path}"
@@ -79,7 +79,7 @@ def import_data():
 @app.route("/", methods=["GET"])
 def index():
     # import_data()
-    return "<p>Hello, ssWorld!</p>"
+    return "<p>Hello, World!</p>"
 
 
 def main():
