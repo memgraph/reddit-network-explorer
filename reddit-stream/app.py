@@ -6,6 +6,7 @@ from time import sleep
 import praw
 import pickle
 from multiprocessing import Process
+from gqlalchemy import Memgraph
 
 
 KAFKA_ENDPOINT='kafka:9092' 
@@ -23,11 +24,13 @@ def parse_args():
 def produce_comments(reddit, subreddit):
     producer = KafkaProducer(bootstrap_servers=KAFKA_ENDPOINT)
 
+    print("Processing comments")
     for comment in reddit.subreddit(
             subreddit).stream.comments(skip_existing=True):
         comment_info = {
             'id': comment.id,
             'body': comment.body,
+            'created_at': comment.created_utc,
             'redditor': {
                 'id': comment.author.id,
                 'name': comment.author.name
@@ -46,6 +49,8 @@ def produce_submissions(reddit, subreddit):
         submission_info = {
             'id': submission.id,
             'title': submission.title,
+            'body': submission.selftext,
+            'created_at': submission.created_utc,
             'redditor': {
                 'id': submission.author.id,
                 'name': submission.author.name
@@ -67,12 +72,15 @@ def get_admin_client():
             retries -= 1
             if not retries:
                 raise
+            print("Failed to connect to Kafka")
             sleep(1)
+
         
 def main():
     args = parse_args()
 
     admin_client = get_admin_client()
+    print("Connected to Kafka")
 
     topic_list = [
         NewTopic(
@@ -88,6 +96,17 @@ def main():
         admin_client.create_topics(new_topics=topic_list, validate_only=False)
     except TopicAlreadyExistsError:
       pass 
+    print("Created topics")
+
+    print("Connecting to Memgraph")
+    memgraph = Memgraph()
+    print("Creating stream connections on Memgraph")
+    all(memgraph.execute_and_fetch("CREATE STREAM comment_stream TOPICS comments TRANSFORM reddit.comments"))
+    all(memgraph.execute_and_fetch("START STREAM comment_stream"))
+    all(memgraph.execute_and_fetch("CREATE STREAM submission_stream TOPICS submissions TRANSFORM reddit.submissions"))
+    all(memgraph.execute_and_fetch("START STREAM submission_stream"))
+
+    print("Start fetching data from Reddit")
 
     reddit = praw.Reddit(
         client_id="nDtB4H_xsfNGBckKxYKb3Q",
