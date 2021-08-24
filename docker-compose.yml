@@ -1,5 +1,3 @@
-version: "3"
-
 networks:
   app-tier:
     driver: bridge
@@ -53,5 +51,14 @@ services:
       MG_PORT: 7687
     depends_on:
       - memgraph-mage
+    networks:
+      - app-tier
+
+  reddit-stream:
+    build: ./reddit-stream
+    volumes:
+      - ./reddit-stream:/app
+    depends_on:
+      - kafka
     networks:
       - app-tier
