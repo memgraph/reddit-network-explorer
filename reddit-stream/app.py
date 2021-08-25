@@ -108,6 +108,9 @@ def main():
     memgraph.execute("CREATE STREAM submission_stream TOPICS submissions TRANSFORM reddit.submissions")
     memgraph.execute("START STREAM submission_stream")
 
+    print("Creating triggers on Memgraph")
+    memgraph.execute("CREATE TRIGGER created_trigger ON CREATE AFTER COMMIT EXECUTE CALL publisher.create(createdObjects)")
+
     print("Start fetching data from Reddit")
 
     reddit = praw.Reddit(
