@@ -41,6 +41,24 @@ services:
     networks:
       - app-tier
 
+  core:
+    image: tianon/true
+    restart: "no"
+    depends_on:
+      - kafka
+      - memgraph-mage
+
+  setup:
+    build: ./setup
+    environment:
+      MG_HOST: memgraph-mage
+      MG_PORT: 7687
+    depends_on:
+      - memgraph-mage
+      - kafka
+    networks:
+      - app-tier
+
   backend-app:
     build: ./backend
     volumes:
@@ -52,6 +70,7 @@ services:
       MG_PORT: 7687
     depends_on:
       - memgraph-mage
+      - kafka
     networks:
       - app-tier
 
@@ -64,6 +83,6 @@ services:
       MG_HOST: memgraph-mage
       MG_PORT: 7687
     depends_on:
-      - kafka
+      - backend-app
     networks:
       - app-tier
