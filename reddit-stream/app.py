@@ -101,10 +101,10 @@ def main():
     print("Connecting to Memgraph")
     memgraph = Memgraph()
     print("Creating stream connections on Memgraph")
-    all(memgraph.execute_and_fetch("CREATE STREAM comment_stream TOPICS comments TRANSFORM reddit.comments"))
-    all(memgraph.execute_and_fetch("START STREAM comment_stream"))
-    all(memgraph.execute_and_fetch("CREATE STREAM submission_stream TOPICS submissions TRANSFORM reddit.submissions"))
-    all(memgraph.execute_and_fetch("START STREAM submission_stream"))
+    memgraph.execute("CREATE STREAM comment_stream TOPICS comments TRANSFORM reddit.comments")
+    memgraph.execute("START STREAM comment_stream")
+    memgraph.execute("CREATE STREAM submission_stream TOPICS submissions TRANSFORM reddit.submissions")
+    memgraph.execute("START STREAM submission_stream")
 
     print("Start fetching data from Reddit")
 
