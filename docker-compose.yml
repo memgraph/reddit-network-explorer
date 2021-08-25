@@ -30,13 +30,14 @@ services:
       - app-tier
 
   memgraph-mage:
-    image: memgraph/memgraph-mage
+    build: ./memgraph
     ports:
       - '7687:7687'
     volumes:
       - ./transformations:/transformations
+      - ./procedures:/procedures
       - ./memgraph/import-data:/usr/lib/memgraph/import-data
-    entrypoint: ["/usr/lib/memgraph/memgraph", "--telemetry-enabled=false", "--kafka-bootstrap-servers=kafka:9092", "--query-modules-directory=/transformations"]
+    entrypoint: ["/usr/lib/memgraph/memgraph", "--telemetry-enabled=false", "--kafka-bootstrap-servers=kafka:9092", "--query-modules-directory=/transformations,/procedures"]
     networks:
       - app-tier
 
@@ -58,7 +59,7 @@ services:
     build: ./reddit-stream
     volumes:
       - ./reddit-stream:/app
-    entrypoint: ["python3", "app.py", "--subreddit=croatia"]
+    entrypoint: ["python3", "app.py", "--subreddit=askreddit"]
     environment:
       MG_HOST: memgraph-mage
       MG_PORT: 7687
