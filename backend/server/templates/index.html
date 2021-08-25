@@ -8,25 +8,17 @@
             namespace = '/kafka';
             var socket = io(namespace);
 
-            socket.on('kafkaconsumer1', function (msg) {
-                $('#consumer').html("")
-            });
-            socket.on('kafkaconsumer', function (msg) {
+            socket.on('consumer', function (msg) {
+                console.log("sdfsdf")
                 $('#consumer').append('<br>' + $('<div/>').text(msg.data).html());
             });
 
-            socket.on('kafkaproducer', function (msg) {
-                $('#producer').append('<br>' + $('<div/>').text(msg.data).html());
-            });
-
             socket.on('logs', function (msg) {
-                console.log("Logs: " + msg.data)
                 $('#log').append('<br>' + $('<div/>').text(msg.data).html());
             });
 
             $('form#emit').submit(function (event) {
-                console.log("Sent: " + $('#emit_data').val())
-                socket.emit('kafkaproducer', $('#emit_data').val());
+                socket.emit('consumer');
                 return false;
             });
         });
@@ -35,13 +27,10 @@
 
 <body>
     <form id="emit" method="POST" action='#'>
-        <input type="text" name="emit_data" id="emit_data" placeholder="Message">
-        <input type="submit" value="Echo">
+        <input type="submit" value="Start consuming">
     </form>
     <h2>Logs</h2>
     <div id="log"></div>
-    <h2>Producer</h2>
-    <div id="producer"></div>
     <h2>Consumer</h2>
     <div id="consumer"></div>
 </body>

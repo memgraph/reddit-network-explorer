@@ -1,4 +1,6 @@
 import logging
+import os
+import pickle
 import time
 from argparse import ArgumentParser
 from flask import Flask, render_template
@@ -7,11 +9,13 @@ from flask_socketio import SocketIO, emit
 from functools import wraps
 from gqlalchemy import Memgraph
 from pathlib import Path
-from kafka import KafkaProducer, KafkaConsumer, TopicPartition
-import uuid
+from kafka import KafkaConsumer
 
-BOOTSTRAP_SERVERS = 'kafka:9092'
-TOPIC_NAME = 'stackbox'
+KAFKA_IP = os.getenv('KAFKA_IP', 'kafka')
+KAFKA_PORT = os.getenv('KAFKA_PORT', '9092')
+KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'created_objects')
+MEMGRAPH_IP = os.getenv('MEMGRAPH_IP', 'memgraph-mage')
+MEMGRAPH_PORT = os.getenv('MEMGRAPH_PORT', '7687')
 
 log = logging.getLogger(__name__)
 
@@ -38,7 +42,7 @@ def parse_args():
     return parser.parse_args()
 
 
-memgraph = Memgraph()
+memgraph = Memgraph(host=MEMGRAPH_IP, port=int(MEMGRAPH_PORT))
 
 
 def connect_to_memgraph():
@@ -89,8 +93,6 @@ def import_data():
 @app.route("/", methods=["GET"])
 @cross_origin()
 def index():
-    # import_data()
-    log.info("hello")
     return render_template('index.html')
 
 
@@ -99,36 +101,21 @@ def test_connect():
     emit('logs', {'data': 'Connection established'})
 
 
-@socketio.on('kafkaproducer', namespace="/kafka")
-def kafkaproducer(message):
-    log.info("Received: " + message)
-    producer = KafkaProducer(bootstrap_servers=BOOTSTRAP_SERVERS,
-                             api_version=(0, 11, 5))
-    producer.send(TOPIC_NAME, value=bytes(str(message),
-                                          encoding='utf-8'), key=bytes(str(uuid.uuid4()),
-                                                                       encoding='utf-8'))
-    emit('logs', {'data': 'Added ' + message + ' to topic'})
-    emit('kafkaproducer', {'data': message})
-    producer.close()
-    kafkaconsumer(message)
-
-
-@socketio.on('kafkaconsumer', namespace="/kafka")
-def kafkaconsumer(message):
-    consumer = KafkaConsumer(group_id='consumer-1',
-                             bootstrap_servers=BOOTSTRAP_SERVERS)
-    tp = TopicPartition(TOPIC_NAME, 0)
-    consumer.assign([tp])
-    consumer.seek_to_end(tp)
-    lastOffset = consumer.position(tp)
-    consumer.seek_to_beginning(tp)
-    emit('kafkaconsumer1', {'data': ''})
-    for message in consumer:
-        emit('kafkaconsumer',
-             {'data': message.value.decode('utf8')})
-        if message.offset == lastOffset - 1:
-            break
-    consumer.close()
+@socketio.on('consumer', namespace="/kafka")
+def kafkaconsumer():
+    consumer = KafkaConsumer(KAFKA_TOPIC,
+                             bootstrap_servers=KAFKA_IP+':'+KAFKA_PORT)
+    try:
+        for message in consumer:
+            message = pickle.loads(message.value)
+            log.info("Message: " + str(message))
+            try:
+                emit('consumer', {'data': str(message)})
+            except Exception as error:
+                logging.error(f"`{message}`, {repr(error)}")
+                continue
+    except KeyboardInterrupt:
+        pass
 
 
 def main():
