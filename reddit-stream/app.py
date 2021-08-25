@@ -44,12 +44,14 @@ def produce_comments(reddit, subreddit):
 def produce_submissions(reddit, subreddit):
     producer = KafkaProducer(bootstrap_servers=KAFKA_ENDPOINT)
 
+    print("Processing submissions")
     for submission in reddit.subreddit(
-            subreddit).stream.submissions(skip_existing=False):
+            subreddit).stream.submissions(skip_existing=True):
         submission_info = {
             'id': submission.id,
             'title': submission.title,
             'body': submission.selftext,
+            'url': submission.url,
             'created_at': submission.created_utc,
             'redditor': {
                 'id': submission.author.id,

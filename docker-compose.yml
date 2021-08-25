@@ -58,7 +58,7 @@ services:
     build: ./reddit-stream
     volumes:
       - ./reddit-stream:/app
-    entrypoint: ["python3", "app.py", "--subreddit=askreddit"]
+    entrypoint: ["python3", "app.py", "--subreddit=croatia"]
     environment:
       MG_HOST: memgraph-mage
       MG_PORT: 7687

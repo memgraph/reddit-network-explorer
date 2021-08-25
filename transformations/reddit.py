@@ -37,12 +37,13 @@ def submissions(messages: mgp.Messages
         submission_info = pickle.loads(message.payload())
         result_queries.append(
             mgp.Record(
-                query=("CREATE (s:SUBMISSION {id: $id, title: $title, body: $body, created_at: $created_at}) "
+                query=("CREATE (s:SUBMISSION {id: $id, title: $title, body: $body, url: $url, created_at: $created_at}) "
                        "MERGE (r:REDDITOR {id: $redditor_id, name: $redditor_name}) "
                        "CREATE (s)-[:CREATED_BY]->(r)"),
                 parameters={
                     "title": submission_info["title"],
                     "body": submission_info["body"],
+                    "url": submission_info["url"],
                     "created_at": submission_info["created_at"],
                     "id": submission_info["id"],
                     "redditor_id": submission_info["redditor"]["id"],
