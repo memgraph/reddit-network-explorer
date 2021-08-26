@@ -13,6 +13,7 @@ services:
       - app-tier
     logging:
       driver: none
+
   kafka:
     image: 'bitnami/kafka:2'
     logging:
@@ -31,6 +32,7 @@ services:
       - zookeeper
     networks:
       - app-tier
+
   memgraph-mage:
     build: ./memgraph
     ports:
@@ -47,17 +49,6 @@ services:
     depends_on:
       - kafka
       - memgraph-mage
-
-  setup:
-    build: ./setup
-    environment:
-      MG_HOST: memgraph-mage
-      MG_PORT: 7687
-    depends_on:
-      - memgraph-mage
-      - kafka
-    networks:
-      - app-tier
 
   backend-app:
     build: ./backend
@@ -83,8 +74,10 @@ services:
       - ./reddit-stream:/app
     entrypoint: ["python3", "app.py", "--subreddit=askreddit"]
     environment:
-      MG_HOST: memgraph-mage
-      MG_PORT: 7687
+      KAFKA_IP: kafka
+      KAFKA_PORT: '9092'
+      MEMGRAPH_IP: memgraph-mage
+      MEMGRAPH_PORT: '7687'
     depends_on:
       - backend-app
     networks:
