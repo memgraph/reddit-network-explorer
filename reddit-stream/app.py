@@ -1,11 +1,20 @@
-from argparse import ArgumentParser
-from kafka import KafkaProducer
+import os
 import praw
 import pickle
+import time
+from argparse import ArgumentParser
+from kafka import KafkaProducer
+from kafka.errors import NoBrokersAvailable
 from multiprocessing import Process
+from time import sleep
 
 
-KAFKA_ENDPOINT='kafka:9092' 
+KAFKA_IP = os.getenv('KAFKA_IP', 'kafka')
+KAFKA_PORT = os.getenv('KAFKA_PORT', '9092')
+KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'created_objects')
+MEMGRAPH_IP = os.getenv('MEMGRAPH_IP', 'memgraph-mage')
+MEMGRAPH_PORT = os.getenv('MEMGRAPH_PORT', '7687')
+
 
 def parse_args():
     """
@@ -17,8 +26,23 @@ def parse_args():
     return parser.parse_args()
 
 
+def create_kafka_producer():
+    retries = 30
+    while True:
+        try:
+            producer = KafkaProducer(
+                bootstrap_servers=KAFKA_IP + ':' + KAFKA_PORT)
+            return producer
+        except NoBrokersAvailable:
+            retries -= 1
+            if not retries:
+                raise
+            print("Failed to connect to Kafka")
+            sleep(1)
+
+
 def produce_comments(reddit, subreddit):
-    producer = KafkaProducer(bootstrap_servers=KAFKA_ENDPOINT)
+    producer = create_kafka_producer()
 
     print("Processing comments")
     for comment in reddit.subreddit(
@@ -38,7 +62,7 @@ def produce_comments(reddit, subreddit):
 
 
 def produce_submissions(reddit, subreddit):
-    producer = KafkaProducer(bootstrap_servers=KAFKA_ENDPOINT)
+    producer = create_kafka_producer()
 
     print("Processing submissions")
     for submission in reddit.subreddit(
@@ -57,7 +81,7 @@ def produce_submissions(reddit, subreddit):
         print(submission_info)
         producer.send('submissions', pickle.dumps(submission_info))
 
-        
+
 def main():
     args = parse_args()
 

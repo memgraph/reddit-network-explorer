@@ -1,14 +1,13 @@
 import logging
 import os
 import pickle
+import setup
 import time
 from argparse import ArgumentParser
 from flask import Flask, render_template
 from flask_cors import CORS, cross_origin
 from flask_socketio import SocketIO, emit
 from functools import wraps
-from gqlalchemy import Memgraph
-from pathlib import Path
 from kafka import KafkaConsumer
 
 KAFKA_IP = os.getenv('KAFKA_IP', 'kafka')
@@ -42,20 +41,6 @@ def parse_args():
     return parser.parse_args()
 
 
-memgraph = Memgraph(host=MEMGRAPH_IP, port=int(MEMGRAPH_PORT))
-
-
-def connect_to_memgraph():
-    connection_established = False
-    while(not connection_established):
-        try:
-            if (memgraph._get_cached_connection().is_active()):
-                connection_established = True
-        except:
-            log.info("Memgraph probably isn't running.")
-            time.sleep(4)
-
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -72,22 +57,6 @@ def log_time(func):
         log.info(f"Time for {func.__name__} is {duration}")
         return result
     return wrapper
-
-
-# TODO: Change data import query and add import files to /memgraph/import-data
-@log_time
-def import_data():
-    """Load data into the database."""
-    try:
-        memgraph.drop_database()
-        path = Path("/usr/lib/memgraph/import-data/import_file.csv")
-
-        memgraph.execute_query(
-            f"""LOAD CSV FROM "{path}"
-            WITH HEADER DELIMITER " " AS row"""
-        )
-    except Exception as e:
-        log.error("Error while loading data:\n" + e)
 
 
 @app.route("/", methods=["GET"])
@@ -121,8 +90,11 @@ def kafkaconsumer():
 def main():
     init_log()
     args = parse_args()
-    connect_to_memgraph()
-    socketio.run(app, host=args.host, port=args.port, debug=args.debug)
+
+    memgraph = setup.connect_to_memgraph(MEMGRAPH_IP, MEMGRAPH_PORT)
+    setup.run(memgraph, KAFKA_IP, KAFKA_PORT)
+
+    socketio.run(app, host=args.host, port=args.port, debug=args.debug, use_reloader=False)
 
 
 if __name__ == "__main__":
