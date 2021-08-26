@@ -59,18 +59,18 @@ def log_time(func):
     return wrapper
 
 
-@app.route("/", methods=["GET"])
+@app.route("/test", methods=["GET"])
 @cross_origin()
 def index():
     return render_template('index.html')
 
 
-@socketio.on('connect', namespace='/kafka')
+@socketio.on('connect')
 def test_connect():
     emit('logs', {'data': 'Connection established'})
 
 
-@socketio.on('consumer', namespace="/kafka")
+@socketio.on('consumer')
 def kafkaconsumer():
     consumer = KafkaConsumer(KAFKA_TOPIC,
                              bootstrap_servers=KAFKA_IP+':'+KAFKA_PORT)
