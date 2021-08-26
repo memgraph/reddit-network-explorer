@@ -1,12 +1,8 @@
-import { AfterContentInit, AfterViewInit, Component, OnInit } from '@angular/core';
+import { AfterContentInit, Component, OnInit } from '@angular/core';
 import * as d3 from 'd3';
-import { color, selection } from 'd3';
 import { Observable } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { callbackify } from 'util';
 import { ApiService, mockData } from '../services/api.service.mock';
-
-var data = require('./graph.json');
 
 @Component({
   selector: 'app-graph',
@@ -21,19 +17,29 @@ export class GraphComponent implements OnInit, AfterContentInit {
     this.data$ = this.api.data$;
   }
 
+  findNode(id) {
+    //return this.data.nodes.filter((node) => node.id === id)[0];
+    for (var i in this.nodes) {
+      if (this.nodes[i]["id"] === id) return this.nodes[i];
+    }
+  };
+
   ngOnInit() {
     this.data$.pipe(delay(1000)).subscribe(data => {
-      console.log(data);
+      this.data = data;
       if (!data.links || !data.nodes) return;
       const links = data.links.map(d => Object.create(d));
-      const nodes= data.nodes.map(d => Object.create(d));
-      console.log('nodes', nodes);
-
+      const nodes = data.nodes.map(d => Object.create(d));
+      this.nodes = nodes;
+      links.forEach((link) => {
+        link.source = this.findNode(link.source);
+        link.target = this.findNode(link.target);
+      });
 
       this.update(nodes, links);
 
       this.simulation.nodes(nodes)
-      .force("collide", d3.forceCollide().strength(1).radius(function(d){ return 10; }).iterations(1));
+        .force("collide", d3.forceCollide().strength(1).radius(function(d){ return 10; }).iterations(1));
     })
     this.api.startPolling();
   }
@@ -53,7 +59,6 @@ export class GraphComponent implements OnInit, AfterContentInit {
   private drag;
 
   private colors = d3.scaleOrdinal(d3.schemeCategory10);
-
 
 	ngAfterContentInit() {
     this.simulation = d3.forceSimulation(this.nodes)
@@ -100,14 +105,14 @@ export class GraphComponent implements OnInit, AfterContentInit {
           .attr("cy", d => d.y);
     });
 
-
     this.link = this.svg.append("g")
       .attr("stroke", "#999")
       .attr("stroke-opacity", 0.6)
       .selectAll("line")
       .data(this.links)
       .join("line")
-      .attr("stroke-width", (d: any) => Math.sqrt(d.value));
+      .attr('id', (d: any) => d.source.id + '-' + d.target.id)
+      .attr("stroke-width", (d: any) => Math.sqrt(d.value))
 
     this.node = this.svg.append("g")
       .attr("stroke", "#fff")
@@ -121,20 +126,21 @@ export class GraphComponent implements OnInit, AfterContentInit {
 
   }
 
-  private createSvg(): void {
-    this.svg = d3.select("#graphContainer")
-    .append("svg")
-    .attr("width", this.width)
-    .attr("height", this.height)
-    .append("g")
-    .attr(
-      "transform",
-      "translate(" + this.width / 2 + "," + this.height / 2 + ")"
-    );
-  }
-
   private update(nodes, links) {
-    console.log('update');
+    this.link = this.link.data(links, (d: any) => d.source.id + '-' + d.target.id)
+
+    // Remove old links
+    this.link.exit().remove();
+
+    this.link = this.link.enter().append('line')
+      .attr('id', (d: any) => d.source.id + '-' + d.target.id)
+      .attr("stroke", "#999")
+      .attr("stroke-opacity", 0.6)
+      .attr("stroke-width", (d: any) => Math.sqrt(d.value))
+      //.attr("stroke", "black")
+      .merge(this.link);
+
+
     // Update existing nodes
     this.node.selectAll('circle')
       .style('fill', (d) => this.colors(d.id));
@@ -147,43 +153,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
     this.node = this.node.enter().append('circle')
       .attr("r", 5)
       .style("fill", (d: any) => { return this.colors(d.group); })
-
       .merge(this.node);
-
-
-    // Remove old links
-    this.link.exit().remove();
-
-
-    this.link = this.link.data(links)
-    this.link = this.link.enter().append('line')
-      .attr("stroke", "#999")
-      .attr("stroke-opacity", 0.6)
-      .selectAll("line")
-      .data(this.links)
-      .join("line")
-      .attr("stroke-width", (d: any) => Math.sqrt(d.value));
-
-
-
-    /*
-    this.node = this.node.data(nodes, (d) => d.id);
-    this.node = this.node.enter().append('circle')
-      .attr("r", 5)
-      .style("fill", (d: any) => { return this.colors(d.group); })
-      .merge(this.node);
-    this.link = this.link.data(links, function(d) {
-      return d.source.id + '-' + d.target.id;
-    });
-    this.link.exit();
-    this.link= this.link.enter().append('line')
-      .attr('id', function(d) {
-        return d.source.id + '-' + d.target.id;
-      })
-    .attr("stroke-width", 3)
-      .merge(this.link);
-      */
-
 
   }
 
