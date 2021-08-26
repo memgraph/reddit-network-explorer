@@ -72,7 +72,7 @@ services:
     build: ./reddit-stream
     volumes:
       - ./reddit-stream:/app
-    entrypoint: ["python3", "app.py", "--subreddit=askreddit"]
+    entrypoint: ["python3", "dummy.py", "--file=worldnews_data.jsonl", "--interval=1"]
     environment:
       KAFKA_IP: kafka
       KAFKA_PORT: '9092'
