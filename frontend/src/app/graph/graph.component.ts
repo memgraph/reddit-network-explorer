@@ -128,7 +128,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
       .data(this.nodes)
       .join('circle')
       .attr('r', 5)
-      .style('fill', (d: any) => this.colors(d.group))
+      .style('fill', (d: any) => d.color)
       .call(this.drag);
   }
 
@@ -145,12 +145,10 @@ export class GraphComponent implements OnInit, AfterContentInit {
       .enter()
       .append('circle')
       .attr('r', 5)
-      .style('fill', (d: any) => {
-        return this.colors(d.group);
-      })
+      .style('fill', (d: any) => d.color)
       .merge(this.node);
 
-    console.log('link', links);
+    // console.log('link', links);
     this.link = this.link.data(links, (d: any) => {
       return d.source.id + '-' + d.target.id;
     });
@@ -168,7 +166,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
       // .attr("stroke", "black")
       .merge(this.link);
 
-    console.log('nodes', this.nodes);
+    // console.log('nodes', this.nodes);
 
     this.simulation
       .nodes(this.nodes)
