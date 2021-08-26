@@ -5,19 +5,7 @@ from kafka import KafkaProducer
 
 KAFKA_ENDPOINT = 'kafka:9092'
 
-"""
-        if obj['event_type'] == 'created_vertex' and obj['vertex'].labels[0].name != "REDDITOR":
-            created_objects_info['vertices'].append({
-                'id': obj['vertex'].id,
-                'labels': [label.name for label in obj['vertex'].labels],
-                'sentiment': obj['vertex'].sentiment,
-            })
-        elif obj['event_type'] == 'created_vertex' and obj['vertex'].labels[0].name == "REDDITOR":
-            created_objects_info['vertices'].append({
-                'id': obj['vertex'].id,
-                'labels': [label.name for label in obj['vertex'].labels],
-            })
-"""
+
 @mgp.read_proc
 def create(created_objects: mgp.Any
            ) -> mgp.Record():
@@ -25,10 +13,17 @@ def create(created_objects: mgp.Any
 
     for obj in created_objects:
         if obj['event_type'] == 'created_vertex':
-            created_objects_info['vertices'].append({
-                'id': obj['vertex'].id,
-                'labels': [label.name for label in obj['vertex'].labels]
-            })
+            if obj['vertex'].labels[0].name != "REDDITOR":
+                created_objects_info['vertices'].append({
+                    'id': obj['vertex'].id,
+                    'labels': [label.name for label in obj['vertex'].labels],
+                    'sentiment': obj['vertex'].properties['sentiment'],
+                })
+            else:
+                created_objects_info['vertices'].append({
+                    'id': obj['vertex'].id,
+                    'labels': [label.name for label in obj['vertex'].labels]
+                })
         else:
             created_objects_info['edges'].append({
                 'id': obj['edge'].id,
