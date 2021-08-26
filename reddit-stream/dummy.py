@@ -1,10 +1,13 @@
+import json
+import os
 from argparse import ArgumentParser
 from kafka import KafkaProducer
-import json
+from kafka.errors import NoBrokersAvailable
 from time import sleep
 
 
-KAFKA_ENDPOINT = 'kafka:9092'
+KAFKA_IP = os.getenv('KAFKA_IP', 'kafka')
+KAFKA_PORT = os.getenv('KAFKA_PORT', '9092')
 
 
 def parse_args():
@@ -21,10 +24,25 @@ def parse_args():
     return parser.parse_args()
 
 
+def create_kafka_producer():
+    retries = 30
+    while True:
+        try:
+            producer = KafkaProducer(
+                bootstrap_servers=KAFKA_IP + ':' + KAFKA_PORT)
+            return producer
+        except NoBrokersAvailable:
+            retries -= 1
+            if not retries:
+                raise
+            print("Failed to connect to Kafka")
+            sleep(1)
+
+
 def main():
     args = parse_args()
 
-    producer = KafkaProducer(bootstrap_servers=KAFKA_ENDPOINT)
+    producer = create_kafka_producer()
     with open(args.file) as f:
         for line in f.readlines():
             line_json = json.loads(line)

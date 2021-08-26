@@ -1,7 +1,6 @@
 import os
 import praw
 import json
-import time
 from argparse import ArgumentParser
 from kafka import KafkaProducer
 from kafka.errors import NoBrokersAvailable
@@ -11,9 +10,6 @@ from time import sleep
 
 KAFKA_IP = os.getenv('KAFKA_IP', 'kafka')
 KAFKA_PORT = os.getenv('KAFKA_PORT', '9092')
-KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'created_objects')
-MEMGRAPH_IP = os.getenv('MEMGRAPH_IP', 'memgraph-mage')
-MEMGRAPH_PORT = os.getenv('MEMGRAPH_PORT', '7687')
 
 
 def parse_args():
