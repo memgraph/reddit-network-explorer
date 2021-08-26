@@ -1,0 +1,38 @@
+<html>
+
+<head>
+    <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            namespace = '/kafka';
+            var socket = io(namespace);
+
+            socket.on('consumer', function (msg) {
+                console.log("sdfsdf")
+                $('#consumer').append('<br>' + $('<div/>').text(msg.data).html());
+            });
+
+            socket.on('logs', function (msg) {
+                $('#log').append('<br>' + $('<div/>').text(msg.data).html());
+            });
+
+            $('form#emit').submit(function (event) {
+                socket.emit('consumer');
+                return false;
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <form id="emit" method="POST" action='#'>
+        <input type="submit" value="Start consuming">
+    </form>
+    <h2>Logs</h2>
+    <div id="log"></div>
+    <h2>Consumer</h2>
+    <div id="consumer"></div>
+</body>
+
+</html>
