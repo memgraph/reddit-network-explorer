@@ -1,6 +1,6 @@
 import os
 import praw
-import pickle
+import json
 import time
 from argparse import ArgumentParser
 from kafka import KafkaProducer
@@ -58,7 +58,7 @@ def produce_comments(reddit, subreddit):
             'parent_id': comment.parent_id[3:]}
         print("Sending a new comment")
         print(comment_info)
-        producer.send('comments', pickle.dumps(comment_info))
+        producer.send('comments', json.dumps(comment_info).encode('utf8'))
 
 
 def produce_submissions(reddit, subreddit):
@@ -79,7 +79,8 @@ def produce_submissions(reddit, subreddit):
             }}
         print("Sending a new submission")
         print(submission_info)
-        producer.send('submissions', pickle.dumps(submission_info))
+        producer.send('submissions', json.dumps(
+            submission_info).encode('utf8'))
 
 
 def main():

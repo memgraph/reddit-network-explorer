@@ -1,5 +1,5 @@
 import mgp
-import pickle
+import json
 from kafka import KafkaProducer
 
 
@@ -26,6 +26,7 @@ def create(created_objects: mgp.Any
             })
 
     kafka_producer = KafkaProducer(bootstrap_servers=KAFKA_ENDPOINT)
-    kafka_producer.send('created_objects', pickle.dumps(created_objects_info))
+    kafka_producer.send('created_objects', json.dumps(
+        created_objects_info).encode('utf8'))
 
     return None
