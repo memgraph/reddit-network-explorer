@@ -18,6 +18,9 @@ MEMGRAPH_PORT = os.getenv('MEMGRAPH_PORT', '7687')
 
 log = logging.getLogger(__name__)
 
+if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    memgraph = setup.connect_to_memgraph(MEMGRAPH_IP, MEMGRAPH_PORT)
+    setup.run(memgraph, KAFKA_IP, KAFKA_PORT)
 
 def init_log():
     logging.basicConfig(level=logging.DEBUG)
@@ -59,18 +62,17 @@ def log_time(func):
     return wrapper
 
 
-@app.route("/", methods=["GET"])
-@cross_origin()
+@app.route("/test", methods=["GET"])
 def index():
     return render_template('index.html')
 
 
-@socketio.on('connect', namespace='/kafka')
+@socketio.on('connect')
 def test_connect():
     emit('logs', {'data': 'Connection established'})
 
 
-@socketio.on('consumer', namespace="/kafka")
+@socketio.on('consumer')
 def kafkaconsumer():
     consumer = KafkaConsumer(KAFKA_TOPIC,
                              bootstrap_servers=KAFKA_IP+':'+KAFKA_PORT)
@@ -90,11 +92,7 @@ def kafkaconsumer():
 def main():
     init_log()
     args = parse_args()
-
-    memgraph = setup.connect_to_memgraph(MEMGRAPH_IP, MEMGRAPH_PORT)
-    setup.run(memgraph, KAFKA_IP, KAFKA_PORT)
-
-    socketio.run(app, host=args.host, port=args.port, debug=args.debug, use_reloader=False)
+    socketio.run(app, host=args.host, port=args.port, debug=args.debug)
 
 
 if __name__ == "__main__":
