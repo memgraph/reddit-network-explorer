@@ -2,7 +2,7 @@ import { AfterContentInit, Component, OnInit } from '@angular/core';
 import * as d3 from 'd3';
 import { Observable } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { ApiService, mockData } from '../services/api.service.mock';
+import { ApiService, initialData } from '../services/api.service';
 
 @Component({
   selector: 'app-graph',
@@ -23,6 +23,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
         return this.nodes[i];
       }
     }
+    return id;
   }
 
   ngOnInit() {
@@ -38,24 +39,14 @@ export class GraphComponent implements OnInit, AfterContentInit {
         link.source = this.findNode(link.source);
         link.target = this.findNode(link.target);
       });
+      this.links = links;
 
       this.update(nodes, links);
-
-      this.simulation.nodes(nodes).force(
-        'collide',
-        d3
-          .forceCollide()
-          .strength(1)
-          .radius(function (d) {
-            return 10;
-          })
-          .iterations(1),
-      );
     });
     this.api.startPolling();
   }
 
-  private data = mockData;
+  private data = initialData;
   private links = this.data.links.map((d) => Object.create(d));
   private nodes = this.data.nodes.map((d) => Object.create(d));
 
@@ -111,12 +102,12 @@ export class GraphComponent implements OnInit, AfterContentInit {
       });
 
     this.simulation.on('tick', () => {
+      this.node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
       this.link
         .attr('x1', (d) => d.source.x)
         .attr('y1', (d) => d.source.y)
         .attr('x2', (d) => d.target.x)
         .attr('y2', (d) => d.target.y);
-      this.node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
     });
 
     this.link = this.svg
@@ -142,21 +133,6 @@ export class GraphComponent implements OnInit, AfterContentInit {
   }
 
   private update(nodes, links) {
-    this.link = this.link.data(links, (d: any) => d.source.id + '-' + d.target.id);
-
-    // Remove old links
-    this.link.exit().remove();
-
-    this.link = this.link
-      .enter()
-      .append('line')
-      .attr('id', (d: any) => d.source.id + '-' + d.target.id)
-      .attr('stroke', '#999')
-      .attr('stroke-opacity', 0.6)
-      .attr('stroke-width', (d: any) => Math.sqrt(d.value))
-      // .attr("stroke", "black")
-      .merge(this.link);
-
     // Update existing nodes
     this.node.selectAll('circle').style('fill', (d) => this.colors(d.id));
 
@@ -173,5 +149,51 @@ export class GraphComponent implements OnInit, AfterContentInit {
         return this.colors(d.group);
       })
       .merge(this.node);
+
+    console.log('link', links);
+    this.link = this.link.data(links, (d: any) => {
+      return d.source.id + '-' + d.target.id;
+    });
+
+    // Remove old links
+    this.link.exit().remove();
+
+    this.link = this.link
+      .enter()
+      .append('line')
+      .attr('id', (d: any) => d.source.id + '-' + d.target.id)
+      .attr('stroke', '#999')
+      .attr('stroke-opacity', 0.6)
+      .attr('stroke-width', (d: any) => Math.sqrt(d.value))
+      // .attr("stroke", "black")
+      .merge(this.link);
+
+    console.log('nodes', this.nodes);
+
+    this.simulation
+      .nodes(this.nodes)
+      .force('link', d3.forceLink(this.links))
+      .force(
+        'collide',
+        d3
+          .forceCollide()
+          .strength(1)
+          .radius(function (d) {
+            return 10;
+          })
+          .iterations(1),
+      )
+      .force('charge', d3.forceManyBody())
+      .force('center', d3.forceCenter(this.width / 2, this.height / 2));
+
+    this.simulation.on('tick', () => {
+      this.node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
+      this.link
+        .attr('x1', (d) => d.source.x)
+        .attr('y1', (d) => d.source.y)
+        .attr('x2', (d) => d.target.x)
+        .attr('y2', (d) => d.target.y);
+    });
+    this.simulation.alphaTarget(0.3).restart();
   }
 }

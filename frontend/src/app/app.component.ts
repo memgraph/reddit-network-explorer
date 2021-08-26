@@ -18,9 +18,6 @@ export class AppComponent {
 
   ngOnInit() {
     this.initIoConnection();
-    this.api.data$.subscribe((data) => {
-      console.log('got data', data);
-    });
   }
 
   private initIoConnection(): void {
@@ -32,9 +29,11 @@ export class AppComponent {
       console.log('connected');
     });
 
+    /*
     this.api.onMessage().subscribe((message: any) => {
       console.log('Message', message);
     });
+    */
 
     this.api.onEvent(Event.DISCONNECT).subscribe(() => {
       this.isConnected = false;
