@@ -1,6 +1,6 @@
 import logging
 import os
-import pickle
+import json
 import setup
 import time
 from argparse import ArgumentParser
@@ -32,7 +32,8 @@ def parse_args():
     """
     Parse input command line arguments.
     """
-    parser = ArgumentParser(description="A Reddit explorer powered by Memgraph.")
+    parser = ArgumentParser(
+        description="A Reddit explorer powered by Memgraph.")
     parser.add_argument("--host", default="0.0.0.0", help="Host address.")
     parser.add_argument("--port", default=5000, type=int, help="App port.")
     parser.add_argument(
@@ -75,10 +76,10 @@ def test_connect():
 @socketio.on('consumer')
 def kafkaconsumer():
     consumer = KafkaConsumer(KAFKA_TOPIC,
-                             bootstrap_servers=KAFKA_IP+':'+KAFKA_PORT)
+                             bootstrap_servers=KAFKA_IP + ':' + KAFKA_PORT)
     try:
         for message in consumer:
-            message = pickle.loads(message.value)
+            message = json.loads(message.value.decode('utf8'))
             log.info("Message: " + str(message))
             try:
                 emit('consumer', {'data': str(message)})

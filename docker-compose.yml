@@ -42,7 +42,7 @@ services:
       KAFKA_PORT: '9092'
     volumes:
       - ./memgraph/import-data:/usr/lib/memgraph/import-data
-    entrypoint: ["/usr/lib/memgraph/memgraph", "--telemetry-enabled=false", "--kafka-bootstrap-servers=kafka:9092", "--query-modules-directory=/transformations,/procedures"]
+    entrypoint: ["/usr/lib/memgraph/memgraph", "--telemetry-enabled=false", "--kafka-bootstrap-servers=kafka:9092", "--query-modules-directory=/transformations,/procedures", "--log-level=TRACE", "--also-log-to-stderr"]
     networks:
       - app-tier
 
@@ -75,7 +75,7 @@ services:
     build: ./reddit-stream
     volumes:
       - ./reddit-stream:/app
-    entrypoint: ["python3", "app.py", "--subreddit=askreddit"]
+    entrypoint: ["python3", "dummy.py", "--file=worldnews_data.jsonl", "--interval=1"]
     environment:
       KAFKA_IP: kafka
       KAFKA_PORT: '9092'

@@ -1,5 +1,5 @@
 import mgp
-import pickle
+import json
 
 
 @mgp.transformation
@@ -9,7 +9,7 @@ def comments(messages: mgp.Messages
 
     for i in range(messages.total_messages()):
         message = messages.message_at(i)
-        comment_info = pickle.loads(message.payload())
+        comment_info = json.loads(message.payload().decode('utf8'))
         result_queries.append(
             mgp.Record(
                 query=("MATCH (p {id: $parent_id}) "
@@ -36,7 +36,7 @@ def submissions(messages: mgp.Messages
 
     for i in range(messages.total_messages()):
         message = messages.message_at(i)
-        submission_info = pickle.loads(message.payload())
+        submission_info = json.loads(message.payload().decode('utf8'))
         result_queries.append(
             mgp.Record(
                 query=("CALL sentiment_analyzer.run($title) YIELD sentiment "
