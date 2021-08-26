@@ -1,6 +1,6 @@
 import logging
 import os
-import pickle
+import json
 import setup
 import time
 from argparse import ArgumentParser
@@ -18,6 +18,9 @@ MEMGRAPH_PORT = os.getenv('MEMGRAPH_PORT', '7687')
 
 log = logging.getLogger(__name__)
 
+if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    memgraph = setup.connect_to_memgraph(MEMGRAPH_IP, MEMGRAPH_PORT)
+    setup.run(memgraph, KAFKA_IP, KAFKA_PORT)
 
 def init_log():
     logging.basicConfig(level=logging.DEBUG)
@@ -29,7 +32,8 @@ def parse_args():
     """
     Parse input command line arguments.
     """
-    parser = ArgumentParser(description="A Reddit explorer powered by Memgraph.")
+    parser = ArgumentParser(
+        description="A Reddit explorer powered by Memgraph.")
     parser.add_argument("--host", default="0.0.0.0", help="Host address.")
     parser.add_argument("--port", default=5000, type=int, help="App port.")
     parser.add_argument(
@@ -73,10 +77,10 @@ def test_connect():
 @socketio.on('consumer')
 def kafkaconsumer():
     consumer = KafkaConsumer(KAFKA_TOPIC,
-                             bootstrap_servers=KAFKA_IP+':'+KAFKA_PORT)
+                             bootstrap_servers=KAFKA_IP + ':' + KAFKA_PORT)
     try:
         for message in consumer:
-            message = pickle.loads(message.value)
+            message = json.loads(message.value.decode('utf8'))
             log.info("Message: " + str(message))
             try:
                 emit('consumer', {'data': str(message)})
@@ -90,11 +94,7 @@ def kafkaconsumer():
 def main():
     init_log()
     args = parse_args()
-
-    memgraph = setup.connect_to_memgraph(MEMGRAPH_IP, MEMGRAPH_PORT)
-    setup.run(memgraph, KAFKA_IP, KAFKA_PORT)
-
-    socketio.run(app, host=args.host, port=args.port, debug=args.debug, use_reloader=False)
+    socketio.run(app, host=args.host, port=args.port, debug=args.debug)
 
 
 if __name__ == "__main__":

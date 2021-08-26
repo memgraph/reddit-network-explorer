@@ -1,5 +1,5 @@
 import mgp
-import pickle
+import json
 
 
 @mgp.transformation
@@ -9,11 +9,12 @@ def comments(messages: mgp.Messages
 
     for i in range(messages.total_messages()):
         message = messages.message_at(i)
-        comment_info = pickle.loads(message.payload())
+        comment_info = json.loads(message.payload().decode('utf8'))
         result_queries.append(
             mgp.Record(
                 query=("MATCH (p {id: $parent_id}) "
-                       "CREATE (c:COMMENT {id: $id, body: $body, created_at: $created_at}) "
+                       "CALL sentiment_analyzer.run($body) YIELD sentiment "
+                       "CREATE (c:COMMENT {id: $id, body: $body, created_at: $created_at, sentiment: sentiment}) "
                        "MERGE (r:REDDITOR {id: $redditor_id, name: $redditor_name}) "
                        "CREATE (c)-[:CREATED_BY]->(r) "
                        "CREATE (c)-[:REPLY_TO]->(p)"),
@@ -27,17 +28,19 @@ def comments(messages: mgp.Messages
 
     return result_queries
 
+
 @mgp.transformation
 def submissions(messages: mgp.Messages
-             ) -> mgp.Record(query=str, parameters=mgp.Nullable[mgp.Map]):
+                ) -> mgp.Record(query=str, parameters=mgp.Nullable[mgp.Map]):
     result_queries = []
 
     for i in range(messages.total_messages()):
         message = messages.message_at(i)
-        submission_info = pickle.loads(message.payload())
+        submission_info = json.loads(message.payload().decode('utf8'))
         result_queries.append(
             mgp.Record(
-                query=("CREATE (s:SUBMISSION {id: $id, title: $title, body: $body, url: $url, created_at: $created_at}) "
+                query=("CALL sentiment_analyzer.run($title) YIELD sentiment "
+                       "CREATE (s:SUBMISSION {id: $id, title: $title, body: $body, url: $url, created_at: $created_at, sentiment: sentiment}) "
                        "MERGE (r:REDDITOR {id: $redditor_id, name: $redditor_name}) "
                        "CREATE (s)-[:CREATED_BY]->(r)"),
                 parameters={

@@ -1,11 +1,23 @@
 import mgp
-import pickle
+import json
 from kafka import KafkaProducer
 
 
 KAFKA_ENDPOINT = 'kafka:9092'
 
-
+"""
+        if obj['event_type'] == 'created_vertex' and obj['vertex'].labels[0].name != "REDDITOR":
+            created_objects_info['vertices'].append({
+                'id': obj['vertex'].id,
+                'labels': [label.name for label in obj['vertex'].labels],
+                'sentiment': obj['vertex'].sentiment,
+            })
+        elif obj['event_type'] == 'created_vertex' and obj['vertex'].labels[0].name == "REDDITOR":
+            created_objects_info['vertices'].append({
+                'id': obj['vertex'].id,
+                'labels': [label.name for label in obj['vertex'].labels],
+            })
+"""
 @mgp.read_proc
 def create(created_objects: mgp.Any
            ) -> mgp.Record():
@@ -26,6 +38,7 @@ def create(created_objects: mgp.Any
             })
 
     kafka_producer = KafkaProducer(bootstrap_servers=KAFKA_ENDPOINT)
-    kafka_producer.send('created_objects', pickle.dumps(created_objects_info))
+    kafka_producer.send('created_objects', json.dumps(
+        created_objects_info).encode('utf8'))
 
     return None
