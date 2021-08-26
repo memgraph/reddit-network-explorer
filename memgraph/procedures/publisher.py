@@ -1,9 +1,11 @@
-import mgp
 import json
+import mgp
+import os
 from kafka import KafkaProducer
 
 
-KAFKA_ENDPOINT = 'kafka:9092'
+KAFKA_IP = os.getenv('KAFKA_IP', 'kafka')
+KAFKA_PORT = os.getenv('KAFKA_PORT', '9092')
 
 
 @mgp.read_proc
@@ -32,7 +34,7 @@ def create(created_objects: mgp.Any
                 'to': obj['edge'].to_vertex.id
             })
 
-    kafka_producer = KafkaProducer(bootstrap_servers=KAFKA_ENDPOINT)
+    kafka_producer = KafkaProducer(bootstrap_servers=KAFKA_IP + ':' + KAFKA_PORT)
     kafka_producer.send('created_objects', json.dumps(
         created_objects_info).encode('utf8'))
 
