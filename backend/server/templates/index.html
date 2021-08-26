@@ -5,9 +5,7 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function () {
-            namespace = '/kafka';
-            var socket = io(namespace);
-
+            var socket = io("http://localhost:5000");
             socket.on('consumer', function (msg) {
                 console.log("sdfsdf")
                 $('#consumer').append('<br>' + $('<div/>').text(msg.data).html());

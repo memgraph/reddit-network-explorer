@@ -13,7 +13,8 @@ def comments(messages: mgp.Messages
         result_queries.append(
             mgp.Record(
                 query=("MATCH (p {id: $parent_id}) "
-                       "CREATE (c:COMMENT {id: $id, body: $body, created_at: $created_at}) "
+                       "CALL sentiment_analyzer.run($body) YIELD sentiment "
+                       "CREATE (c:COMMENT {id: $id, body: $body, created_at: $created_at, sentiment: sentiment}) "
                        "MERGE (r:REDDITOR {id: $redditor_id, name: $redditor_name}) "
                        "CREATE (c)-[:CREATED_BY]->(r) "
                        "CREATE (c)-[:REPLY_TO]->(p)"),
@@ -27,9 +28,10 @@ def comments(messages: mgp.Messages
 
     return result_queries
 
+
 @mgp.transformation
 def submissions(messages: mgp.Messages
-             ) -> mgp.Record(query=str, parameters=mgp.Nullable[mgp.Map]):
+                ) -> mgp.Record(query=str, parameters=mgp.Nullable[mgp.Map]):
     result_queries = []
 
     for i in range(messages.total_messages()):
@@ -37,7 +39,8 @@ def submissions(messages: mgp.Messages
         submission_info = pickle.loads(message.payload())
         result_queries.append(
             mgp.Record(
-                query=("CREATE (s:SUBMISSION {id: $id, title: $title, body: $body, url: $url, created_at: $created_at}) "
+                query=("CALL sentiment_analyzer.run($title) YIELD sentiment "
+                       "CREATE (s:SUBMISSION {id: $id, title: $title, body: $body, url: $url, created_at: $created_at, sentiment: sentiment}) "
                        "MERGE (r:REDDITOR {id: $redditor_id, name: $redditor_name}) "
                        "CREATE (s)-[:CREATED_BY]->(r)"),
                 parameters={

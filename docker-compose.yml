@@ -37,6 +37,9 @@ services:
     build: ./memgraph
     ports:
       - '7687:7687'
+    environment:
+      KAFKA_IP: kafka
+      KAFKA_PORT: '9092'
     volumes:
       - ./memgraph/import-data:/usr/lib/memgraph/import-data
     entrypoint: ["/usr/lib/memgraph/memgraph", "--telemetry-enabled=false", "--kafka-bootstrap-servers=kafka:9092", "--query-modules-directory=/transformations,/procedures"]
