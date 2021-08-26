@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 from kafka import KafkaProducer
 import json
-import pickle
 from time import sleep
 
 
@@ -34,7 +33,7 @@ def main():
             del line_json['label']
 
             print(f'Sending data to {topic}')
-            producer.send(topic, pickle.dumps(line_json))
+            producer.send(topic, json.dumps(line_json).encode('utf8'))
             sleep(args.interval)
 
 
