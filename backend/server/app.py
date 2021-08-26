@@ -1,11 +1,11 @@
+import json
 import logging
 import os
-import json
 import setup
 import time
 from argparse import ArgumentParser
 from flask import Flask, render_template
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from functools import wraps
 from kafka import KafkaConsumer
@@ -18,9 +18,6 @@ MEMGRAPH_PORT = os.getenv('MEMGRAPH_PORT', '7687')
 
 log = logging.getLogger(__name__)
 
-if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-    memgraph = setup.connect_to_memgraph(MEMGRAPH_IP, MEMGRAPH_PORT)
-    setup.run(memgraph, KAFKA_IP, KAFKA_PORT)
 
 def init_log():
     logging.basicConfig(level=logging.DEBUG)
@@ -50,6 +47,12 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+
+
+@app.before_first_request
+def set_up_memgraph_and_kafka():
+    memgraph = setup.connect_to_memgraph(MEMGRAPH_IP, MEMGRAPH_PORT)
+    setup.run(memgraph, KAFKA_IP, KAFKA_PORT)
 
 
 def log_time(func):
