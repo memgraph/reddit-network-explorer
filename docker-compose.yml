@@ -11,9 +11,13 @@ services:
       - ALLOW_ANONYMOUS_LOGIN=yes
     networks:
       - app-tier
+    logging:
+      driver: none
 
   kafka:
     image: 'bitnami/kafka:2'
+    logging:
+      driver: none
     ports:
       - '9093:9093'
     environment:
@@ -34,8 +38,6 @@ services:
     ports:
       - '7687:7687'
     volumes:
-      - ./transformations:/transformations
-      - ./procedures:/procedures
       - ./memgraph/import-data:/usr/lib/memgraph/import-data
     entrypoint: ["/usr/lib/memgraph/memgraph", "--telemetry-enabled=false", "--kafka-bootstrap-servers=kafka:9092", "--query-modules-directory=/transformations,/procedures"]
     networks:
@@ -48,17 +50,6 @@ services:
       - kafka
       - memgraph-mage
 
-  setup:
-    build: ./setup
-    environment:
-      MG_HOST: memgraph-mage
-      MG_PORT: 7687
-    depends_on:
-      - memgraph-mage
-      - kafka
-    networks:
-      - app-tier
-
   backend-app:
     build: ./backend
     volumes:
@@ -66,8 +57,11 @@ services:
     ports:
       - "5000:5000"
     environment:
-      MG_HOST: memgraph-mage
-      MG_PORT: 7687
+      KAFKA_IP: kafka
+      KAFKA_PORT: '9092'
+      KAFKA_TOPIC: 'created_objects'
+      MEMGRAPH_IP: memgraph-mage
+      MEMGRAPH_PORT: '7687'
     depends_on:
       - memgraph-mage
       - kafka
@@ -80,8 +74,10 @@ services:
       - ./reddit-stream:/app
     entrypoint: ["python3", "app.py", "--subreddit=askreddit"]
     environment:
-      MG_HOST: memgraph-mage
-      MG_PORT: 7687
+      KAFKA_IP: kafka
+      KAFKA_PORT: '9092'
+      MEMGRAPH_IP: memgraph-mage
+      MEMGRAPH_PORT: '7687'
     depends_on:
       - backend-app
     networks:
