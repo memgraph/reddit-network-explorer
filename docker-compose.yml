@@ -78,11 +78,6 @@ services:
     networks:
       - app-tier
 
-  frontend-app:
-    build: ./frontend
-    ports:
-      - "4200:4200"
-
   reddit-stream:
     build: ./reddit-stream
     volumes:
@@ -95,6 +90,5 @@ services:
       MEMGRAPH_PORT: '7687'
     depends_on:
       - backend-app
-      - frontend-app
     networks:
       - app-tier
