@@ -2,7 +2,7 @@ import { AfterContentInit, Component, OnInit } from '@angular/core';
 import * as d3 from 'd3';
 import { Observable } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { ApiService, mockData } from '../services/api.service.mock';
+import { ApiService, initialData } from '../services/api.service';
 
 @Component({
   selector: 'app-graph',
@@ -13,7 +13,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
   private data$: Observable<any>;
 
   constructor(private api: ApiService) {
-    this.data$ = this.api.data$;
+    this.data$ = this.api.datum$;
   }
 
   findNode(id) {
@@ -23,41 +23,30 @@ export class GraphComponent implements OnInit, AfterContentInit {
         return this.nodes[i];
       }
     }
+    return id;
   }
 
   ngOnInit() {
     this.data$.pipe(delay(1000)).subscribe((data) => {
-      this.data = data;
       if (!data.links || !data.nodes) {
         return;
       }
       const links = data.links.map((d) => Object.create(d));
       const nodes = data.nodes.map((d) => Object.create(d));
-      this.nodes = nodes;
+      this.nodes = this.nodes.concat(nodes);
       links.forEach((link) => {
         link.source = this.findNode(link.source);
         link.target = this.findNode(link.target);
       });
+      this.links = this.links.concat(links);
 
-      this.update(nodes, links);
-
-      this.simulation.nodes(nodes).force(
-        'collide',
-        d3
-          .forceCollide()
-          .strength(1)
-          .radius(function (d) {
-            return 10;
-          })
-          .iterations(1),
-      );
+      this.update(this.nodes, this.links);
     });
     this.api.startPolling();
   }
 
-  private data = mockData;
-  private links = this.data.links.map((d) => Object.create(d));
-  private nodes = this.data.nodes.map((d) => Object.create(d));
+  private links = initialData.links.map((d) => Object.create(d));
+  private nodes = initialData.nodes.map((d) => Object.create(d));
 
   width = 960;
   height = 780;
@@ -66,7 +55,6 @@ export class GraphComponent implements OnInit, AfterContentInit {
   private svg;
   private link;
   private node;
-  private drag;
 
   private colors = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -88,35 +76,13 @@ export class GraphComponent implements OnInit, AfterContentInit {
       .attr('width', this.width) // "100%" also works
       .attr('height', this.height);
 
-    // init D3 drag support
-    this.drag = d3
-      .drag()
-      .on('start', (event: any, d: any) => {
-        if (!event.active) {
-          this.simulation.alphaTarget(0.3).restart();
-        }
-        d.fx = d.x;
-        d.fy = d.y;
-      })
-      .on('drag', (event: any, d: any) => {
-        d.fx = event.x;
-        d.fy = event.y;
-      })
-      .on('end', (event: any, d: any) => {
-        if (!event.active) {
-          this.simulation.alphaTarget(0.3);
-        }
-        d.fx = null;
-        d.fy = null;
-      });
-
     this.simulation.on('tick', () => {
+      this.node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
       this.link
         .attr('x1', (d) => d.source.x)
         .attr('y1', (d) => d.source.y)
         .attr('x2', (d) => d.target.x)
         .attr('y2', (d) => d.target.y);
-      this.node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
     });
 
     this.link = this.svg
@@ -136,27 +102,11 @@ export class GraphComponent implements OnInit, AfterContentInit {
       .selectAll('circle')
       .data(this.nodes)
       .join('circle')
-      .attr('r', 5)
-      .style('fill', (d: any) => this.colors(d.group))
-      .call(this.drag);
+      .attr('r', (d: any) => d.radius)
+      .style('fill', (d: any) => d.color);
   }
 
   private update(nodes, links) {
-    this.link = this.link.data(links, (d: any) => d.source.id + '-' + d.target.id);
-
-    // Remove old links
-    this.link.exit().remove();
-
-    this.link = this.link
-      .enter()
-      .append('line')
-      .attr('id', (d: any) => d.source.id + '-' + d.target.id)
-      .attr('stroke', '#999')
-      .attr('stroke-opacity', 0.6)
-      .attr('stroke-width', (d: any) => Math.sqrt(d.value))
-      // .attr("stroke", "black")
-      .merge(this.link);
-
     // Update existing nodes
     this.node.selectAll('circle').style('fill', (d) => this.colors(d.id));
 
@@ -168,10 +118,50 @@ export class GraphComponent implements OnInit, AfterContentInit {
     this.node = this.node
       .enter()
       .append('circle')
-      .attr('r', 5)
-      .style('fill', (d: any) => {
-        return this.colors(d.group);
-      })
+      .attr('r', (d: any) => d.radius)
+      .style('fill', (d: any) => d.color)
       .merge(this.node);
+
+    this.link = this.link.data(links, (d: any) => {
+      return d.source.id + '-' + d.target.id;
+    });
+
+    // Remove old links
+    this.link.exit().remove();
+
+    this.link = this.link
+      .enter()
+      .append('line')
+      .attr('id', (d: any) => d.source.id + '-' + d.target.id)
+      .attr('stroke', '#999')
+      .attr('stroke-opacity', 0.6)
+      .attr('stroke-width', (d: any) => Math.sqrt(d.value))
+      .merge(this.link);
+
+    this.simulation
+      .nodes(this.nodes)
+      .force('link', d3.forceLink(this.links))
+      .force(
+        'collide',
+        d3
+          .forceCollide()
+          .strength(1)
+          .radius(function (d) {
+            return 20;
+          })
+          .iterations(1),
+      )
+      .force('charge', d3.forceManyBody())
+      .force('center', d3.forceCenter(this.width / 2, this.height / 2));
+
+    this.simulation.on('tick', () => {
+      this.node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
+      this.link
+        .attr('x1', (d) => d.source.x)
+        .attr('y1', (d) => d.source.y)
+        .attr('x2', (d) => d.target.x)
+        .attr('y2', (d) => d.target.y);
+    });
+    this.simulation.alphaTarget(0.3).restart();
   }
 }

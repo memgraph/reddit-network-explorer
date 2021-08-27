@@ -86,7 +86,7 @@ def kafkaconsumer():
             message = json.loads(message.value.decode('utf8'))
             log.info("Message: " + str(message))
             try:
-                emit('consumer', {'data': str(message)})
+                emit('consumer', {'data': message})
             except Exception as error:
                 logging.error(f"`{message}`, {repr(error)}")
                 continue

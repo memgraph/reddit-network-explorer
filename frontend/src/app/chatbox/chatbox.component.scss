@@ -1,0 +1,20 @@
+.box-wrapper {
+  overflow-y: scroll;
+  position: fixed;
+  right: 0;
+  padding-right: 50px;
+  bottom: 0;
+  top: 0;
+  width: 400px;
+  text-align: left;
+  overflow-wrap: break-word;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.submission {
+  font-weight: bold;
+}
+
+.comment {
+}

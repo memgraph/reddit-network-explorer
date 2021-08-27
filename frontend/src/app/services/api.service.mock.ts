@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { timer, of, BehaviorSubject } from 'rxjs';
 import { exhaustMap } from 'rxjs/operators';
 
-export const mockData = {
+export const initialData = {
   nodes: [
     { type: 'User', id: 0, name: 'Alice', group: 0 },
     { type: 'User', id: 1, name: 'Bob', group: 0 },
@@ -48,7 +48,7 @@ export const mockData = {
 export class ApiService {
   commentId = 19;
 
-  public data$ = new BehaviorSubject<any>(mockData);
+  public data$ = new BehaviorSubject<any>(initialData);
 
   public getData() {
     const data = this.data$.getValue();
