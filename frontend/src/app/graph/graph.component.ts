@@ -13,7 +13,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
   private data$: Observable<any>;
 
   constructor(private api: ApiService) {
-    this.data$ = this.api.data$;
+    this.data$ = this.api.datum$;
   }
 
   findNode(id) {
@@ -28,27 +28,25 @@ export class GraphComponent implements OnInit, AfterContentInit {
 
   ngOnInit() {
     this.data$.pipe(delay(1000)).subscribe((data) => {
-      this.data = data;
       if (!data.links || !data.nodes) {
         return;
       }
       const links = data.links.map((d) => Object.create(d));
       const nodes = data.nodes.map((d) => Object.create(d));
-      this.nodes = nodes;
+      this.nodes = this.nodes.concat(nodes);
       links.forEach((link) => {
         link.source = this.findNode(link.source);
         link.target = this.findNode(link.target);
       });
-      this.links = links;
+      this.links = this.links.concat(links);
 
-      this.update(nodes, links);
+      this.update(this.nodes, this.links);
     });
     this.api.startPolling();
   }
 
-  private data = initialData;
-  private links = this.data.links.map((d) => Object.create(d));
-  private nodes = this.data.nodes.map((d) => Object.create(d));
+  private links = initialData.links.map((d) => Object.create(d));
+  private nodes = initialData.nodes.map((d) => Object.create(d));
 
   width = 960;
   height = 780;
@@ -104,7 +102,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
       .selectAll('circle')
       .data(this.nodes)
       .join('circle')
-      .attr('r', 5)
+      .attr('r', (d: any) => d.radius)
       .style('fill', (d: any) => d.color);
   }
 
@@ -120,7 +118,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
     this.node = this.node
       .enter()
       .append('circle')
-      .attr('r', 5)
+      .attr('r', (d: any) => d.radius)
       .style('fill', (d: any) => d.color)
       .merge(this.node);
 
@@ -152,7 +150,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
           .forceCollide()
           .strength(1)
           .radius(function (d) {
-            return 10;
+            return 20;
           })
           .iterations(1),
       )
