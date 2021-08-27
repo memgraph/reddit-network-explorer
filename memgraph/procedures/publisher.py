@@ -15,17 +15,25 @@ def create(created_objects: mgp.Any
 
     for obj in created_objects:
         if obj['event_type'] == 'created_vertex':
-            if obj['vertex'].labels[0].name != "REDDITOR":
-                created_objects_info['vertices'].append({
-                    'id': obj['vertex'].id,
-                    'labels': [label.name for label in obj['vertex'].labels],
+            created_object = {
+                'id': obj['vertex'].id,
+                'labels': [label.name for label in obj['vertex'].labels],
+            }
+            if obj['vertex'].labels[0].name == "SUBMISSION":
+                created_object.update({
                     'sentiment': obj['vertex'].properties['sentiment'],
+                    'title': obj['vertex'].properties['title'],
+                })
+            elif obj['vertex'].labels[0].name == "COMMENT":
+                created_object.update({
+                    'sentiment': obj['vertex'].properties['sentiment'],
+                    'body': obj['vertex'].properties['body'],
                 })
             else:
-                created_objects_info['vertices'].append({
-                    'id': obj['vertex'].id,
-                    'labels': [label.name for label in obj['vertex'].labels]
+                created_object.update({
+                    'name': obj['vertex'].properties['name'],
                 })
+            created_objects_info['vertices'].append(created_object)
         else:
             created_objects_info['edges'].append({
                 'id': obj['edge'].id,
