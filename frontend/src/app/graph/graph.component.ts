@@ -107,6 +107,9 @@ export class GraphComponent implements OnInit, AfterContentInit {
   }
 
   private update(nodes, links) {
+    // Define the div for the tooltip
+    const div = d3.select('body').append('div').attr('class', 'tooltip').style('opacity', 0);
+
     // Update existing nodes
     this.node.selectAll('circle').style('fill', (d) => this.colors(d.id));
 
@@ -118,8 +121,26 @@ export class GraphComponent implements OnInit, AfterContentInit {
     this.node = this.node
       .enter()
       .append('circle')
+      .attr('text', (d: any) => d.text)
       .attr('r', (d: any) => d.radius)
       .style('fill', (d: any) => d.color)
+      .on('mouseover', (d) => {
+        const text = d.srcElement.getAttribute('text');
+        div.transition().duration(100).style('opacity', 0.9);
+        div
+          .html('<p>' + text + '</p>')
+          .style('text-align', 'center')
+          .style('position', 'fixed')
+          .style('width', '40%')
+          .style('left', '30%')
+          .style('right', '30%')
+          .style('bottom', '100px')
+          .style('font-size', 'medium')
+          .style('opacity', '0.8');
+      })
+      .on('mouseout', function () {
+        div.transition().duration(1000).style('opacity', 0);
+      })
       .merge(this.node);
 
     this.link = this.link.data(links, (d: any) => {

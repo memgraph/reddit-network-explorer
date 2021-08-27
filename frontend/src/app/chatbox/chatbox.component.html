@@ -1,4 +1,4 @@
-<div #feed class="box-wrapper">
+<div class="box-wrapper">
   <div *ngFor="let comment of comments$ | async">
     <p [ngClass]="{
       'comment': comment.type === 'COMMENT',
