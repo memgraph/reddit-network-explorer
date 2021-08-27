@@ -14,9 +14,12 @@ export class ChatboxComponent implements OnInit {
 
   ngOnInit(): void {
     this.comments$ = this.api.data$.pipe(
-      map((data: any) =>
-        data.nodes.filter((node) => node.type === 'COMMENT' || node.type === 'SUBMISSION').map((node) => node.text),
-      ),
+      map((data: any) => data.nodes.filter((node) => node.type === 'COMMENT' || node.type === 'SUBMISSION').reverse()),
     );
+
+    this.comments$.subscribe((_) => {
+      const element = document.getElementById('feed');
+      (element as any).scrollTop = (element as any).scrollHeight;
+    });
   }
 }

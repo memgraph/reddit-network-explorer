@@ -1,5 +1,8 @@
-<div class="box-wrapper">
+<div #feed class="box-wrapper">
   <div *ngFor="let comment of comments$ | async">
-    <p>{{comment}}</p>
+    <p [ngClass]="{
+      'comment': comment.type === 'COMMENT',
+      'submission': comment.type === 'SUBMISSION'
+    }">{{comment.text}}</p>
   </div>
 </div>

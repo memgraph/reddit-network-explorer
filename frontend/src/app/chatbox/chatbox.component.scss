@@ -8,4 +8,13 @@
   width: 400px;
   text-align: left;
   overflow-wrap: break-word;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.submission {
+  font-weight: bold;
+}
+
+.comment {
 }
