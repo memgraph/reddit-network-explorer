@@ -37,6 +37,7 @@ export class ApiService {
         return {
           id: vertex.id,
           type: vertex.labels[0],
+          text: vertex.name || vertex.body || vertex.title,
           ...this.getStyle(vertex.labels[0], vertex.sentiment),
         };
       });
@@ -51,7 +52,6 @@ export class ApiService {
       this.datum$.next({ nodes, links });
       currentData.nodes = currentData.nodes.concat(nodes);
       currentData.links = currentData.links.concat(links);
-      console.log('data', currentData);
       this.data$.next(currentData);
     });
   }

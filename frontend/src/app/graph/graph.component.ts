@@ -122,7 +122,6 @@ export class GraphComponent implements OnInit, AfterContentInit {
       .style('fill', (d: any) => d.color)
       .merge(this.node);
 
-    // console.log('link', links);
     this.link = this.link.data(links, (d: any) => {
       return d.source.id + '-' + d.target.id;
     });
@@ -138,8 +137,6 @@ export class GraphComponent implements OnInit, AfterContentInit {
       .attr('stroke-opacity', 0.6)
       .attr('stroke-width', (d: any) => Math.sqrt(d.value))
       .merge(this.link);
-
-    // console.log('nodes', this.nodes);
 
     this.simulation
       .nodes(this.nodes)
