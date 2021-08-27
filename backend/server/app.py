@@ -5,7 +5,7 @@ import setup
 import time
 from argparse import ArgumentParser
 from flask import Flask, render_template
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from flask_socketio import SocketIO, emit
 from functools import wraps
 from kafka import KafkaConsumer
@@ -67,6 +67,7 @@ def log_time(func):
 
 
 @app.route("/test", methods=["GET"])
+@cross_origin()
 def index():
     return render_template('index.html')
 
