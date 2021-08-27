@@ -57,7 +57,6 @@ export class GraphComponent implements OnInit, AfterContentInit {
   private svg;
   private link;
   private node;
-  private drag;
 
   private colors = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -78,28 +77,6 @@ export class GraphComponent implements OnInit, AfterContentInit {
       .append('svg')
       .attr('width', this.width) // "100%" also works
       .attr('height', this.height);
-
-    // init D3 drag support
-    this.drag = d3
-      .drag()
-      .on('start', (event: any, d: any) => {
-        if (!event.active) {
-          this.simulation.alphaTarget(0.3).restart();
-        }
-        d.fx = d.x;
-        d.fy = d.y;
-      })
-      .on('drag', (event: any, d: any) => {
-        d.fx = event.x;
-        d.fy = event.y;
-      })
-      .on('end', (event: any, d: any) => {
-        if (!event.active) {
-          this.simulation.alphaTarget(0.3);
-        }
-        d.fx = null;
-        d.fy = null;
-      });
 
     this.simulation.on('tick', () => {
       this.node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
@@ -128,8 +105,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
       .data(this.nodes)
       .join('circle')
       .attr('r', 5)
-      .style('fill', (d: any) => d.color)
-      .call(this.drag);
+      .style('fill', (d: any) => d.color);
   }
 
   private update(nodes, links) {
@@ -163,7 +139,6 @@ export class GraphComponent implements OnInit, AfterContentInit {
       .attr('stroke', '#999')
       .attr('stroke-opacity', 0.6)
       .attr('stroke-width', (d: any) => Math.sqrt(d.value))
-      // .attr("stroke", "black")
       .merge(this.link);
 
     // console.log('nodes', this.nodes);
