@@ -78,6 +78,18 @@ services:
     networks:
       - app-tier
 
+  frontend-app:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend-app
+    networks:
+      - app-tier
+
+
   reddit-stream:
     build: ./reddit-stream
     volumes:
