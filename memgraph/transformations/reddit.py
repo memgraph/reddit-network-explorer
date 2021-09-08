@@ -53,3 +53,22 @@ def submissions(messages: mgp.Messages
                     "redditor_name": submission_info["redditor"]["name"]}))
 
     return result_queries
+
+@mgp.transformation
+def node_deleter(messages: mgp.Messages
+        ) -> mgp.Record(query=str, parameters=mgp.Nullable[mgp.Map]):
+    result_queries = []
+
+    for i in range(messages.total_messages()):
+        message = messages.message_at(i)
+        delete_info = json.loads(message.payload().decode('utf8'))
+        result_queries.append(
+                mgp.Record(
+                    query=("MATCH (n) "
+                           "WHERE n.created_at < $delete_limit OR degree(n) == 0 "
+                           "DETACH DELETE n"),
+                    parameters={
+                        'delete_limit': delete_info['timestamp']
+                    }))
+
+    return result_queries

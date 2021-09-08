@@ -66,6 +66,10 @@ def run(memgraph, kafka_ip, kafka_port):
         NewTopic(
             name="created_objects",
             num_partitions=1,
+            replication_factor=1),
+        NewTopic(
+            name="node_deleter",
+            num_partitions=1,
             replication_factor=1)]
 
     try:
@@ -82,6 +86,9 @@ def run(memgraph, kafka_ip, kafka_port):
     memgraph.execute(
         "CREATE STREAM submission_stream TOPICS submissions TRANSFORM reddit.submissions")
     memgraph.execute("START STREAM submission_stream")
+    memgraph.execute(
+        "CREATE STREAM deleter_stream TOPICS node_deleter TRANSFORM reddit.node_deleter")
+    memgraph.execute("START STREAM deleter_stream")
 
     log.info("Creating triggers on Memgraph")
     memgraph.execute(

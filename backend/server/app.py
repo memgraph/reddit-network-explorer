@@ -3,12 +3,15 @@ import logging
 import os
 import setup
 import time
+import datetime
+import atexit
 from argparse import ArgumentParser
 from flask import Flask, render_template
 from flask_cors import CORS, cross_origin
 from flask_socketio import SocketIO, emit
 from functools import wraps
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, KafkaProducer
+from apscheduler.schedulers.background import BackgroundScheduler
 
 KAFKA_IP = os.getenv('KAFKA_IP', 'kafka')
 KAFKA_PORT = os.getenv('KAFKA_PORT', '9092')
@@ -53,6 +56,19 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 def set_up_memgraph_and_kafka():
     memgraph = setup.connect_to_memgraph(MEMGRAPH_IP, MEMGRAPH_PORT)
     setup.run(memgraph, KAFKA_IP, KAFKA_PORT)
+
+    def old_node_deleter():
+        node_limit = datetime.datetime.utcnow() - datetime.timedelta(days=4)
+        delete_info = {
+            'timestamp': int(node_limit.timestamp())
+        }
+        producer = KafkaProducer(bootstrap_servers=KAFKA_IP + ':' + KAFKA_PORT)
+        producer.send('node_deleter', json.dumps(delete_info).encode('utf8'))
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(func=old_node_deleter, trigger='interval', hours=1)
+    scheduler.start()
+
+    atexit.register(lambda: scheduler.shutdown())
 
 
 def log_time(func):
