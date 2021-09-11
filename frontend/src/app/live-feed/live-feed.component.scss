@@ -1,11 +1,12 @@
 .box-wrapper {
+  flex: 1;
   overflow-y: scroll;
-  position: fixed;
   right: 0;
-  padding-right: 50px;
+  padding-right: 3rem;
   bottom: 0;
   top: 0;
-  width: 400px;
+  width: 25rem;
+  height: 100%;
   text-align: left;
   overflow-wrap: break-word;
   display: flex;
@@ -14,7 +15,4 @@
 
 .submission {
   font-weight: bold;
-}
-
-.comment {
 }
