@@ -84,6 +84,7 @@ services:
       - "4200:4200"
     depends_on:
       - backend-app
+      - reddit-stream-test
     networks:
       - app-tier
 
