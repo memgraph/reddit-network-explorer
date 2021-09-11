@@ -103,7 +103,7 @@ def parse_node(result):
         node = {
             'id': result.id,
             'labels': list(result.labels),
-            'titel': result.properties['title'],
+            'title': result.properties['title'],
             'sentiment': result.properties['sentiment']
         }
 
