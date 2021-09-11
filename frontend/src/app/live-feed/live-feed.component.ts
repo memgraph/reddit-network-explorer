@@ -3,11 +3,11 @@ import { ApiService } from '../services/api.service';
 import { map } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-chatbox',
-  templateUrl: './chatbox.component.html',
-  styleUrls: ['./chatbox.component.scss'],
+  selector: 'app-live-feed',
+  templateUrl: './live-feed.component.html',
+  styleUrls: ['./live-feed.component.scss'],
 })
-export class ChatboxComponent implements OnInit {
+export class LiveFeedComponent implements OnInit {
   comments$;
 
   constructor(private api: ApiService) {}

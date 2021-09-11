@@ -4,10 +4,10 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
 import { GraphComponent } from './graph/graph.component';
-import { ChatboxComponent } from './chatbox/chatbox.component';
+import { LiveFeedComponent } from './live-feed/live-feed.component';
 
 @NgModule({
-  declarations: [AppComponent, GraphComponent, ChatboxComponent],
+  declarations: [AppComponent, GraphComponent, LiveFeedComponent],
   imports: [BrowserModule, HttpClientModule],
   providers: [],
   bootstrap: [AppComponent],
