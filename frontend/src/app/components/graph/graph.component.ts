@@ -1,6 +1,6 @@
 import { AfterContentInit, Component, OnInit } from '@angular/core';
 import * as d3 from 'd3';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { ApiService, initialData } from '../../services/api.service';
 
@@ -11,13 +11,14 @@ import { ApiService, initialData } from '../../services/api.service';
 })
 export class GraphComponent implements OnInit, AfterContentInit {
   private data$: Observable<any>;
+  focusedNodeText$ = new Subject<string>();
+  isFocusedVisible = false;
 
   constructor(private api: ApiService) {
     this.data$ = this.api.datum$;
   }
 
   findNode(id) {
-    // return this.data.nodes.filter((node) => node.id === id)[0];
     for (const i in this.nodes) {
       if (this.nodes[i]['id'] === id) {
         return this.nodes[i];
@@ -107,9 +108,6 @@ export class GraphComponent implements OnInit, AfterContentInit {
   }
 
   private update(nodes, links) {
-    // Define the div for the tooltip
-    const div = d3.select('body').append('div').attr('class', 'tooltip').style('opacity', 0);
-
     // Update existing nodes
     this.node.selectAll('circle').style('fill', (d) => this.colors(d.id));
 
@@ -126,20 +124,11 @@ export class GraphComponent implements OnInit, AfterContentInit {
       .style('fill', (d: any) => d.color)
       .on('mouseover', (d) => {
         const text = d.srcElement.getAttribute('text');
-        div.transition().duration(100).style('opacity', 0.9);
-        div
-          .html('<p>' + text + '</p>')
-          .style('text-align', 'center')
-          .style('position', 'fixed')
-          .style('width', '40%')
-          .style('left', '30%')
-          .style('right', '30%')
-          .style('bottom', '100px')
-          .style('font-size', 'medium')
-          .style('opacity', '0.8');
+        this.focusedNodeText$.next(text);
+        this.isFocusedVisible = true;
       })
-      .on('mouseout', function () {
-        div.transition().duration(1000).style('opacity', 0);
+      .on('mouseout', () => {
+        this.isFocusedVisible = false;
       })
       .merge(this.node);
 
