@@ -2,7 +2,6 @@ import logging
 from gqlalchemy import Memgraph
 from kafka.admin import KafkaAdminClient, NewTopic
 from kafka.errors import TopicAlreadyExistsError, NoBrokersAvailable
-from pathlib import Path
 from time import sleep
 
 
@@ -18,20 +17,6 @@ def connect_to_memgraph(memgraph_ip, memgraph_port):
         except:
             log.info("Memgraph probably isn't running.")
             sleep(1)
-
-
-# TODO: Change data import query and add import files to /memgraph/import-data
-def import_data(memgraph):
-    """Load data into the database."""
-    try:
-        path = Path("/usr/lib/memgraph/import-data/import_file.csv")
-
-        memgraph.execute_query(
-            f"""LOAD CSV FROM "{path}"
-            WITH HEADER DELIMITER " " AS row"""
-        )
-    except Exception as e:
-        log.error("Error while loading data:\n" + e)
 
 
 def get_admin_client(kafka_ip, kafka_port):
@@ -78,18 +63,22 @@ def run(memgraph, kafka_ip, kafka_port):
         pass
     log.info("Created topics")
 
-    memgraph.drop_database()
-    log.info("Creating stream connections on Memgraph")
-    memgraph.execute(
-        "CREATE STREAM comment_stream TOPICS comments TRANSFORM reddit.comments")
-    memgraph.execute("START STREAM comment_stream")
-    memgraph.execute(
-        "CREATE STREAM submission_stream TOPICS submissions TRANSFORM reddit.submissions")
-    memgraph.execute("START STREAM submission_stream")
-    memgraph.execute(
-        "CREATE STREAM deleter_stream TOPICS node_deleter TRANSFORM reddit.node_deleter")
-    memgraph.execute("START STREAM deleter_stream")
+    try:
+        memgraph.drop_database()
+        log.info("Creating stream connections on Memgraph")
+        memgraph.execute(
+            "CREATE STREAM comment_stream TOPICS comments TRANSFORM reddit.comments")
+        memgraph.execute("START STREAM comment_stream")
+        memgraph.execute(
+            "CREATE STREAM submission_stream TOPICS submissions TRANSFORM reddit.submissions")
+        memgraph.execute("START STREAM submission_stream")
+        memgraph.execute(
+            "CREATE STREAM deleter_stream TOPICS node_deleter TRANSFORM reddit.node_deleter")
+        memgraph.execute("START STREAM deleter_stream")
 
-    log.info("Creating triggers on Memgraph")
-    memgraph.execute(
-        "CREATE TRIGGER created_trigger ON CREATE AFTER COMMIT EXECUTE CALL publisher.create(createdObjects)")
+        log.info("Creating triggers on Memgraph")
+        memgraph.execute(
+            "CREATE TRIGGER created_trigger ON CREATE AFTER COMMIT EXECUTE CALL publisher.create(createdObjects)")
+    except Exception as e:
+        log.info(f"Error on stream and trigger creation: {e}")
+        pass

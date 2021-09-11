@@ -94,7 +94,22 @@ services:
     build: ./reddit-stream
     volumes:
       - ./reddit-stream:/app
-    entrypoint: ["python3", "app.py", "--subreddit=worldnews"]
+    entrypoint: ["python3", "dummy.py", "--subreddit=worldnews"]
+    environment:
+      KAFKA_IP: kafka
+      KAFKA_PORT: '9092'
+      MEMGRAPH_IP: memgraph-mage
+      MEMGRAPH_PORT: '7687'
+    depends_on:
+      - backend-app
+    networks:
+      - app-tier
+
+  reddit-stream-test:
+    build: ./reddit-stream
+    volumes:
+      - ./reddit-stream:/app
+    entrypoint: ["python3", "dummy.py", "--file=worldnews_data.jsonl", "--interval=2"]
     environment:
       KAFKA_IP: kafka
       KAFKA_PORT: '9092'
