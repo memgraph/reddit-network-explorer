@@ -25,11 +25,6 @@ export class ApiService {
     this.socket.emit('consumer');
   }
 
-  public sendMe(message: any): void {
-    this.socket.emit('message', { data: message });
-  }
-
-  // previously onMessage
   public startPolling() {
     this.socket.on('consumer', (data: any) => {
       console.log('Received a message from websocket service');

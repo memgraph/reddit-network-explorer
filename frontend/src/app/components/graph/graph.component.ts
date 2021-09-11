@@ -2,7 +2,7 @@ import { AfterContentInit, Component, OnInit } from '@angular/core';
 import * as d3 from 'd3';
 import { Observable } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { ApiService, initialData } from '../services/api.service';
+import { ApiService, initialData } from '../../services/api.service';
 
 @Component({
   selector: 'app-graph',
