@@ -1,7 +1,8 @@
-import '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import * as socketIo from 'socket.io-client';
+
+import { getStyle } from '../utils/style.util';
 
 export const initialData = { nodes: [], links: [] };
 
@@ -24,11 +25,6 @@ export class ApiService {
     this.socket.emit('consumer');
   }
 
-  public sendMe(message: any): void {
-    this.socket.emit('message', { data: message });
-  }
-
-  // previously onMessage
   public startPolling() {
     this.socket.on('consumer', (data: any) => {
       console.log('Received a message from websocket service');
@@ -38,7 +34,7 @@ export class ApiService {
           id: vertex.id,
           type: vertex.labels[0],
           text: vertex.name || vertex.body || vertex.title,
-          ...this.getStyle(vertex.labels[0], vertex.sentiment),
+          ...getStyle(vertex.labels[0], vertex.sentiment),
         };
       });
       const links = data.data.edges.map((edge) => {
@@ -60,34 +56,5 @@ export class ApiService {
     return new Observable<Event>((observer) => {
       this.socket.on(event, () => observer.next());
     });
-  }
-
-  private getStyle(type, sentiment) {
-    if (type === 'COMMENT') {
-      const radius = 7;
-      let color = '#989898';
-      if (sentiment === -1) {
-        color = '#ff0000';
-      }
-      if (sentiment === 1) {
-        color = '#00ff00';
-      }
-      return { color, radius };
-    }
-    if (type === 'REDDITOR') {
-      return { color: '#0000ff', radius: 5 };
-    }
-    if (type === 'SUBMISSION') {
-      const radius = 10;
-      let color = '#585858';
-      if (sentiment === -1) {
-        color = '#F2543D';
-      }
-      if (sentiment === 1) {
-        color = '#38C477';
-      }
-      return { color, radius };
-    }
-    return { color: '#ef42f5', radius: 3 };
   }
 }

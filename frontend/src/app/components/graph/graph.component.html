@@ -1,0 +1,4 @@
+<div #graphContainer id="graphContainer"></div>
+<p *ngIf="focusedNodeText$ | async as text" [ngClass]="{ 'visible': isFocusedVisible, 'hidden': !isFocusedVisible}" class="focused-node-text">
+  {{text}}
+</p>
