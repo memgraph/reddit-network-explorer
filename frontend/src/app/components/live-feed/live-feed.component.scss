@@ -1,12 +1,11 @@
 .box-wrapper {
-  flex: 1;
   overflow-y: scroll;
+  position: fixed;
   right: 0;
-  padding-right: 3rem;
+  padding-right: 50px;
   bottom: 0;
   top: 0;
-  width: 25rem;
-  height: 100%;
+  width: 400px;
   text-align: left;
   overflow-wrap: break-word;
   display: flex;

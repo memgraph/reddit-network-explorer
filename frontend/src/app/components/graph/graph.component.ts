@@ -159,21 +159,25 @@ export class GraphComponent implements OnInit, AfterContentInit {
       .attr('stroke-width', (d: any) => Math.sqrt(d.value))
       .merge(this.link);
 
-    this.simulation
-      .nodes(this.nodes)
-      .force('link', d3.forceLink(this.links))
-      .force(
-        'collide',
-        d3
-          .forceCollide()
-          .strength(1)
-          .radius(function (d) {
-            return 20;
-          })
-          .iterations(1),
-      )
-      .force('charge', d3.forceManyBody())
-      .force('center', d3.forceCenter(this.width / 2, this.height / 2));
+    try {
+      this.simulation
+        .nodes(this.nodes)
+        .force('link', d3.forceLink(this.links))
+        .force(
+          'collide',
+          d3
+            .forceCollide()
+            .strength(1)
+            .radius(function (d) {
+              return 20;
+            })
+            .iterations(1),
+        )
+        .force('charge', d3.forceManyBody())
+        .force('center', d3.forceCenter(this.width / 2, this.height / 2));
+    } catch (err) {
+      console.log('err', err);
+    }
 
     this.simulation.on('tick', () => {
       this.node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
