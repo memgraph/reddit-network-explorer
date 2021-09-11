@@ -5,7 +5,7 @@ EXPOSE 4200
 RUN npm install
 
 WORKDIR /app
-COPY frontend/package*.json ./
+COPY package*.json ./
 RUN npm install
 
 COPY . .

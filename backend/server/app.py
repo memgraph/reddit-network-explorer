@@ -44,6 +44,7 @@ def parse_args():
     )
     return parser.parse_args()
 
+args = parse_args()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -52,7 +53,6 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 
-@app.before_first_request
 def set_up_memgraph_and_kafka():
     memgraph = setup.connect_to_memgraph(MEMGRAPH_IP, MEMGRAPH_PORT)
     setup.run(memgraph, KAFKA_IP, KAFKA_PORT)
@@ -111,8 +111,9 @@ def kafkaconsumer():
 
 
 def main():
-    init_log()
-    args = parse_args()
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        init_log()
+        set_up_memgraph_and_kafka()
     socketio.run(app, host=args.host, port=args.port, debug=args.debug)
 
 
