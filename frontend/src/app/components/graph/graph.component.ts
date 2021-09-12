@@ -28,6 +28,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
   }
 
   ngOnInit() {
+    this.api.getGraph();
     this.data$.pipe(delay(1000)).subscribe((data) => {
       if (!data.links || !data.nodes) {
         return;
