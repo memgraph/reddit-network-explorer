@@ -15,7 +15,7 @@ export function getStyle(type, sentiment) {
     return { color: '#0000ff', radius: 5 };
   }
   if (type === 'SUBMISSION') {
-    const radius = 10;
+    const radius = 12;
     let color = '#585858';
     if (sentiment === -1) {
       color = '#F2543D';

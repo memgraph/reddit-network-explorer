@@ -53,11 +53,8 @@ def parse_args():
 args = parse_args()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
-thread = None
 memgraph = None
 
 
@@ -124,11 +121,11 @@ def parse_node(result):
     return node
 
 
-@app.route("/graph", methods=["GET"])
+@app.route("/api/graph", methods=["GET"])
 @cross_origin()
 def get_graph():
     results = list(memgraph.execute_and_fetch("""
-        match (n:SUBMISSION)-[r]-(m) return n, r, m limit 10
+        match (n)-[r]-(m:REDDITOR) return n, r, m order by n.created_at desc limit 30
     """))
 
     nodes_id_set = set()
@@ -167,17 +164,21 @@ def test_connect():
 def kafkaconsumer():
     consumer = KafkaConsumer(KAFKA_TOPIC,
                              bootstrap_servers=KAFKA_IP + ':' + KAFKA_PORT)
-    greenthread.sleep(1)
     try:
-        for message in consumer:
-            message = json.loads(message.value.decode('utf8'))
-            log.info("Message: " + str(message))
-            try:
-                socketio.emit('consumer', {'data': message})
-            except Exception as error:
-                log.info(f"`{message}`, {repr(error)}")
+        while True:
+            msg_pack = consumer.poll()
+            if not msg_pack:
+                greenthread.sleep(1)
                 continue
-            greenthread.sleep(1)
+            for _, messages in msg_pack.items():
+                for message in messages:
+                    message = json.loads(message.value.decode('utf8'))
+                    log.info("Message: " + str(message))
+                    try:
+                        socketio.emit('consumer', {'data': message})
+                    except Exception as error:
+                        log.info(f"`{message}`, {repr(error)}")
+                        continue
     except KeyboardInterrupt:
         pass
 
