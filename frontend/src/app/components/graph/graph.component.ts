@@ -10,12 +10,12 @@ import { ApiService, initialData } from '../../services/api.service';
   styleUrls: ['./graph.component.scss'],
 })
 export class GraphComponent implements OnInit, AfterContentInit {
-  private data$: Observable<any>;
+  private datum$: Observable<any>;
   focusedNodeText$ = new Subject<string>();
   isFocusedVisible = false;
 
   constructor(private api: ApiService) {
-    this.data$ = this.api.datum$;
+    this.datum$ = this.api.datum$;
   }
 
   findNode(id) {
@@ -28,8 +28,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
   }
 
   ngOnInit() {
-    this.api.getGraph();
-    this.data$.pipe(delay(1000)).subscribe((data) => {
+    this.datum$.pipe(delay(1000)).subscribe((data) => {
       if (!data.links || !data.nodes) {
         return;
       }
@@ -44,7 +43,11 @@ export class GraphComponent implements OnInit, AfterContentInit {
 
       this.update(this.nodes, this.links);
     });
-    this.api.startListening();
+
+    this.api.getGraph();
+    setTimeout(() => {
+      this.api.startListening();
+    }, 2000);
   }
 
   private links = initialData.links.map((d) => Object.create(d));
@@ -177,6 +180,6 @@ export class GraphComponent implements OnInit, AfterContentInit {
         .attr('x2', (d) => d.target.x)
         .attr('y2', (d) => d.target.y);
     });
-    this.simulation.alphaTarget(0.3).restart();
+    this.simulation.alphaTarget(0.1).restart();
   }
 }
