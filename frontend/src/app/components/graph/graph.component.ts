@@ -72,8 +72,8 @@ export class GraphComponent implements OnInit, AfterContentInit {
       )
       .force('charge', d3.forceManyBody())
       .force('center', d3.forceCenter(this.width / 2, this.height / 2))
-      .force('x', d3.forceX())
-      .force('y', d3.forceY());
+      .force('x', d3.forceX().strength(0.05))
+      .force('y', d3.forceY().strength(0.05));
 
     this.svg = d3
       .select('#graphContainer')
