@@ -100,7 +100,7 @@ def parse_node(result):
         node = {
             'id': result.id,
             'labels': list(result.labels),
-            'titel': result.properties['title'],
+            'title': result.properties['title'],
             'sentiment': result.properties['sentiment']
         }
 
@@ -125,7 +125,7 @@ def parse_node(result):
 @cross_origin()
 def get_graph():
     results = list(memgraph.execute_and_fetch("""
-        match (n:SUBMISSION)-[r]-(m) return n, r, m limit 10
+        match (n)-[r]-(m:REDDITOR) return n, r, m order by n.created_at desc limit 30
     """))
 
     nodes_id_set = set()
