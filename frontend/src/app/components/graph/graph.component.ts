@@ -44,7 +44,7 @@ export class GraphComponent implements OnInit, AfterContentInit {
 
       this.update(this.nodes, this.links);
     });
-    this.api.startPolling();
+    this.api.startListening();
   }
 
   private links = initialData.links.map((d) => Object.create(d));

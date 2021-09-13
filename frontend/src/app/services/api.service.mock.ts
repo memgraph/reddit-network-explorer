@@ -76,7 +76,7 @@ export class ApiService {
     return of(data);
   }
 
-  public startPolling() {
+  public startListening() {
     timer(1000, 5000)
       .pipe(exhaustMap(() => this.getData()))
       .subscribe((data) => {

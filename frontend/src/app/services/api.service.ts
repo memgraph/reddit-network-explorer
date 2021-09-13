@@ -28,37 +28,18 @@ export class ApiService {
     this.socket.emit('consumer');
   }
 
+  // Gets the initial graph
   public getGraph() {
-    this.httpClient.get('/api/graph').subscribe((res) => {
-      console.log(res);
+    this.httpClient.get('/api/graph').subscribe((res: any) => {
+      this.updateData(res);
     });
   }
 
-  public startPolling() {
-    this.socket.on('consumer', (data: any) => {
+  // Start listening for new streaming data (nodes and links) on the WebSocket.
+  public startListening() {
+    this.socket.on('consumer', (res: any) => {
       console.log('Received a message from websocket service');
-      const currentData = this.data$.getValue();
-      console.log('data', data.data);
-      const nodes = data.data.vertices.map((vertex) => {
-        return {
-          id: vertex.id,
-          type: vertex.labels[0],
-          text: vertex.name || vertex.body || vertex.title,
-          ...getStyle(vertex.labels[0], vertex.sentiment),
-        };
-      });
-      const links = data.data.edges.map((edge) => {
-        return {
-          id: edge.id,
-          source: edge.from,
-          target: edge.to,
-          type: edge.type,
-        };
-      });
-      this.datum$.next({ nodes, links });
-      currentData.nodes = currentData.nodes.concat(nodes);
-      currentData.links = currentData.links.concat(links);
-      this.data$.next(currentData);
+      this.updateData(res.data);
     });
   }
 
@@ -66,5 +47,44 @@ export class ApiService {
     return new Observable<Event>((observer) => {
       this.socket.on(event, () => observer.next());
     });
+  }
+
+  // Adds additional properties such as styles, D3 compatible names, etc.
+  private transformData(data: any) {
+    const nodes = data.vertices.map((vertex) => {
+      return {
+        id: vertex.id,
+        type: vertex.labels[0],
+        text: vertex.name || vertex.body || vertex.title,
+        ...getStyle(vertex.labels[0], vertex.sentiment),
+      };
+    });
+    const links = data.edges.map((edge) => {
+      return {
+        id: edge.id,
+        source: edge.from,
+        target: edge.to,
+        type: edge.type,
+      };
+    });
+
+    return { nodes, links };
+  }
+
+  // Transforms and emits new data coming from the stream.
+  private updateData(data) {
+    // Add additional properties such as styles, D3 compatible names, etc.
+    const transformedData = this.transformData(data);
+
+    // Emit new incoming data
+    const nodes = transformedData.nodes;
+    const links = transformedData.links;
+    this.datum$.next({ nodes, links });
+
+    // Update and emit all existing data
+    const currentData = this.data$.getValue();
+    currentData.nodes = currentData.nodes.concat(nodes);
+    currentData.links = currentData.links.concat(links);
+    this.data$.next(currentData);
   }
 }
