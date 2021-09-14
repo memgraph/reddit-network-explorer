@@ -28,7 +28,7 @@ export class ApiService {
   constructor(private httpClient: HttpClient) {}
 
   public initSocket(): void {
-    this.socket = socketIo('ws://localhost:5000');
+    this.socket = socketIo();
     this.socket.emit('consumer');
   }
 

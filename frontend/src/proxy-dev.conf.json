@@ -1,7 +1,13 @@
 {
   "/api/*": {
     "target": "http://backend-app:5000/",
-    "secure": true,
+    "secure": false,
+    "logLevel": "debug",
+    "changeOrigin": true
+  },
+  "/socket.io": {
+    "target": "http://backend-app:5000/",
+    "secure": false,
     "logLevel": "debug",
     "changeOrigin": true
   }
