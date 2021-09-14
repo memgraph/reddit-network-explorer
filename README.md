@@ -9,8 +9,8 @@
   <a href="https://github.com/memgraph/reddit-network-explorer">
     <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="build" title="build"/>
   </a>
-  <a href="https://github.com/memgraph/reddit-network-explorer/stargazers">
-    <img src="https://img.shields.io/badge/maintainer-gdespot-yellow" alt="maintainer" title="maintainer"/>
+  <a href="#contributors-">
+    <img src="https://img.shields.io/badge/all_contributors-3-green.svg?style=flat" />
   </a>
 </p>
 
@@ -65,3 +65,25 @@ build on top of everything from super-fast graph queries to PageRank and
 Community Detection.
 * [Memgraph Docs](https://docs.memgraph.com)
 * [Memgraph Download](https://memgraph.com/download)
+
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/antonio2368"><img src="https://avatars.githubusercontent.com/u/17751307?v=4" width="100px;" alt=""/><br /><sub><b>Antonio Andelic</b></sub></a></td>
+    <td align="center"><a href="https://github.com/cizl"><img src="https://avatars.githubusercontent.com/u/3769376?v=4" width="100px;" alt=""/><br /><sub><b>David Lozic</b></sub></a></td>
+    <td align="center"><a href="https://github.com/g-despot"><img src="https://avatars.githubusercontent.com/u/66276597?v=4" width="100px;" alt=""/><br /><sub><b>Ivan Despot</b></sub></a></td>
+  </tr>
+</table>
+
+<!-- markdownlint-enable -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!!
