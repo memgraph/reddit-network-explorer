@@ -35,7 +35,7 @@ network analysis algorithms.
 
 ## 📚 Data model
 
-<img src="https://public-assets.memgraph.com/reddit-network-explorer/model.png" 
+<img src="https://public-assets.memgraph.com/reddit-network-explorer/memgraph-blog-reddit-graph-data-model.png" 
          alt="reddit-network-explorer" 
          title="reddit-network-explorer"
          style="width: 80%"/>
