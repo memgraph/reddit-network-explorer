@@ -2,7 +2,7 @@ import eventlet
 import json
 import logging
 import os
-import setup
+import server.setup as setup
 import time
 import datetime
 import atexit
@@ -33,10 +33,8 @@ def init_log():
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
 
+"""
 def parse_args():
-    """
-    Parse input command line arguments.
-    """
     parser = ArgumentParser(
         description="A Reddit explorer powered by Memgraph.")
     parser.add_argument("--host", default="0.0.0.0", help="Host address.")
@@ -51,7 +49,7 @@ def parse_args():
 
 
 args = parse_args()
-
+"""
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 cors = CORS(app)
@@ -183,13 +181,21 @@ def kafkaconsumer():
         pass
 
 
-def main():
-    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        init_log()
-        set_up_memgraph_and_kafka()
+@app.before_first_request
+def execute_this():
+    init_log()
+    set_up_memgraph_and_kafka()
     greenthread.spawn(kafkaconsumer)
-    socketio.run(app, host=args.host, port=args.port, debug=args.debug)
+
+"""
+def main():
+    # if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    init_log()
+    set_up_memgraph_and_kafka()
+    greenthread.spawn(kafkaconsumer)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
 
 
 if __name__ == "__main__":
     main()
+"""

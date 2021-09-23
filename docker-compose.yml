@@ -84,7 +84,6 @@ services:
       - "4200:4200"
     depends_on:
       - backend-app
-      - reddit-stream-test
     networks:
       - app-tier
 
@@ -93,7 +92,7 @@ services:
     build: ./reddit-stream
     volumes:
       - ./reddit-stream:/app
-    entrypoint: ["python3", "dummy.py", "--subreddit=worldnews"]
+    entrypoint: ["python3", "app.py", "--subreddit=worldnews"]
     environment:
       KAFKA_IP: kafka
       KAFKA_PORT: '9092'

@@ -1,4 +1,4 @@
-FROM node:14.16.1-alpine3.12 as frontend-app
+FROM node:14.17.0-alpine3.12 as frontend-app
 EXPOSE 4200
 
 COPY . ./app
