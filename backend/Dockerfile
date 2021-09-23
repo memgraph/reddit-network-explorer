@@ -26,4 +26,4 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
 #ENTRYPOINT ["poetry", "run", "python", "server/app.py"]
-ENTRYPOINT ["gunicorn", "--worker-class", "eventlet", "-w", "1", "-b", "0.0.0.0:5000", "--preload", "server.app:app"]
+ENTRYPOINT ["gunicorn", "--worker-class", "eventlet", "-w", "2", "-b", "0.0.0.0:5000", "--preload", "server.app:app"]

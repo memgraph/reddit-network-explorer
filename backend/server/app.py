@@ -4,16 +4,13 @@ import logging
 import os
 import server.setup as setup
 import time
-import datetime
-import atexit
-from apscheduler.schedulers.background import BackgroundScheduler
 from argparse import ArgumentParser
 from eventlet import greenthread
 from flask import Flask, render_template, Response
 from flask_cors import CORS, cross_origin
 from flask_socketio import SocketIO, emit
 from functools import wraps
-from kafka import KafkaConsumer, KafkaProducer
+from kafka import KafkaConsumer
 
 eventlet.monkey_patch()
 
@@ -33,7 +30,6 @@ def init_log():
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
 
-"""
 def parse_args():
     parser = ArgumentParser(
         description="A Reddit explorer powered by Memgraph.")
@@ -48,8 +44,6 @@ def parse_args():
     return parser.parse_args()
 
 
-args = parse_args()
-"""
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 cors = CORS(app)
@@ -60,19 +54,6 @@ def set_up_memgraph_and_kafka():
     global memgraph
     memgraph = setup.connect_to_memgraph(MEMGRAPH_IP, MEMGRAPH_PORT)
     setup.run(memgraph, KAFKA_IP, KAFKA_PORT)
-
-    def old_node_deleter():
-        node_limit = datetime.datetime.utcnow() - datetime.timedelta(days=4)
-        delete_info = {
-            'timestamp': int(node_limit.timestamp())
-        }
-        producer = KafkaProducer(bootstrap_servers=KAFKA_IP + ':' + KAFKA_PORT)
-        producer.send('node_deleter', json.dumps(delete_info).encode('utf8'))
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(func=old_node_deleter, trigger='interval', hours=1)
-    scheduler.start()
-
-    atexit.register(lambda: scheduler.shutdown())
 
 
 def log_time(func):
@@ -184,16 +165,18 @@ def kafkaconsumer():
 @app.before_first_request
 def execute_this():
     init_log()
-    set_up_memgraph_and_kafka()
+    greenthread.spawn(set_up_memgraph_and_kafka())
     greenthread.spawn(kafkaconsumer)
+
 
 """
 def main():
-    # if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-    init_log()
-    set_up_memgraph_and_kafka()
-    greenthread.spawn(kafkaconsumer)
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        args = parse_args()
+        init_log()
+        set_up_memgraph_and_kafka()
+        greenthread.spawn(kafkaconsumer)
+    socketio.run(app, host=args.host, port=args.port, debug=args.debug)
 
 
 if __name__ == "__main__":

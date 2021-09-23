@@ -13,7 +13,6 @@ python-socketio = "4.6.0"
 gqlalchemy = "^1.0.5"
 kafka-python = "^2.0.2"
 Flask-Cors = "^3.0.10"
-APScheduler = "^3.7.0"
 gunicorn = "^20.1.0"
 eventlet = "0.30.2"
 

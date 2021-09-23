@@ -7,4 +7,4 @@ docker-compose up -d backend-app
 docker-compose up -d frontend-app
 sleep 5
 curl localhost:5000/api/graph
-docker-compose up -d reddit-stream
+docker-compose up -d reddit-stream-test
