@@ -67,13 +67,13 @@ def run(memgraph, kafka_ip, kafka_port):
         memgraph.drop_database()
         log.info("Creating stream connections on Memgraph")
         memgraph.execute(
-            "CREATE STREAM comment_stream TOPICS comments TRANSFORM reddit.comments")
+            "CREATE KAFKA STREAM comment_stream TOPICS comments TRANSFORM reddit.comments BOOTSTRAP_SERVERS 'kafka:9092'")
         memgraph.execute("START STREAM comment_stream")
         memgraph.execute(
-            "CREATE STREAM submission_stream TOPICS submissions TRANSFORM reddit.submissions")
+            "CREATE KAFKA STREAM submission_stream TOPICS submissions TRANSFORM reddit.submissions BOOTSTRAP_SERVERS 'kafka:9092'")
         memgraph.execute("START STREAM submission_stream")
         memgraph.execute(
-            "CREATE STREAM deleter_stream TOPICS node_deleter TRANSFORM reddit.node_deleter")
+            "CREATE KAFKA STREAM deleter_stream TOPICS node_deleter TRANSFORM reddit.node_deleter BOOTSTRAP_SERVERS 'kafka:9092'")
         memgraph.execute("START STREAM deleter_stream")
 
         log.info("Creating triggers on Memgraph")

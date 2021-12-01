@@ -47,9 +47,8 @@ services:
     entrypoint: [
       "/usr/lib/memgraph/memgraph",
       "--telemetry-enabled=false",
-      "--kafka-bootstrap-servers=kafka:9092",
       "--query-modules-directory=/transformations,/procedures,/usr/lib/memgraph/query_modules",
-      "--log-level=TRACE"]
+      "--log-level=DEBUG"]
     networks:
       - app-tier
 
