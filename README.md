@@ -63,8 +63,9 @@ docker-compose up frontend-app
 docker-compose up reddit-stream
 ```
 
-Make sure to set up a Reddit account and create an app to get the `client_id` and `client_secret`.
-You will need those to set up the reddit praw stream in `reddit-stream/app.py` (line 106-109):
+Make sure to set up a Reddit account and go to https://www.reddit.com/prefs/apps in order to create an app so you can
+get the `client_id` and `client_secret`.
+You will need those to set up the Reddit stream in `reddit-stream/app.py` (line 106-109):
 
 ```python
     reddit = praw.Reddit(
