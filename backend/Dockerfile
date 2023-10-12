@@ -11,10 +11,20 @@ RUN apt-get update && \
   apt-get --yes install cmake && \
   rm -rf /var/lib/apt/lists/*
 
+ENV YOUR_ENV=${YOUR_ENV} \
+  PYTHONFAULTHANDLER=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONHASHSEED=random \
+  PIP_NO_CACHE_DIR=off \
+  PIP_DISABLE_PIP_VERSION_CHECK=on \
+  PIP_DEFAULT_TIMEOUT=100 \
+  POETRY_VERSION=1.0.0
+
 # Install poetry
-RUN pip install -U pip \
-    && curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-ENV PATH="${PATH}:/root/.poetry/bin"
+RUN pip install "poetry==$POETRY_VERSION"
+
+RUN pip --version
+RUN python --version
 
 WORKDIR /app
 COPY . .
