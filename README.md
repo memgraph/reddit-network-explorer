@@ -39,12 +39,12 @@ network analysis algorithms.
          alt="reddit-network-explorer" 
          title="reddit-network-explorer"
          style="width: 80%"/>
-    
+
 ## 👉 Try it out!
 
-* The demo application - **[reddit.memgraph.com](http://reddit.memgraph.com/)**
+- The demo application - **[reddit.memgraph.com](http://reddit.memgraph.com/)**
   (**Not deployed yet!**)
-* The Memgraph instance - **bolt://reddit.memgraph.com:7687**
+- The Memgraph instance - **bolt://reddit.memgraph.com:7687**
 
 To explore the data, please download [Memgraph
 Lab](https://memgraph.com/product/lab). The endpoint is `reddit.memgraph.com`
@@ -63,14 +63,28 @@ docker-compose up frontend-app
 docker-compose up reddit-stream
 ```
 
+Make sure to set up a Reddit account and create an app to get the `client_id` and `client_secret`.
+You will need those to set up the reddit praw stream in `reddit-stream/app.py` (line 106-109):
+
+```python
+    reddit = praw.Reddit(
+        client_id="***REMOVED***",
+        client_secret="***REMOVED***",
+        user_agent="graph-demo data fetcher")
+```
+
+The app will need to run a while to populate with comments and users,
+so make sure to keep it running for 10-15 minutes to see some data flowing in.
+
 ## ❔ Find out more about Memgraph
 
 Memgraph makes creating real-time streaming graph applications accessible to
 every developer. Spin up an instance, consume data directly from Kafka, and
 build on top of everything from super-fast graph queries to PageRank and
 Community Detection.
-* [Memgraph Docs](https://docs.memgraph.com)
-* [Memgraph Download](https://memgraph.com/download)
+
+- [Memgraph Docs](https://docs.memgraph.com)
+- [Memgraph Download](https://memgraph.com/download)
 
 ## Contributors ✨
 
