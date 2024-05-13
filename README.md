@@ -33,22 +33,16 @@ The **Reddit Network Explorer** is a web application that lets you visualize a
 subreddit in real-time as well as perform sentiment analysis and different
 network analysis algorithms.
 
+> [!NOTE]  
+> We no longer host the Reddit Network Explorer app on `reddit.memgraph.com`. You can still check out this project to learn how to build an app with Memgraph.
+
+
 ## 📚 Data model
 
 <img src="https://public-assets.memgraph.com/reddit-network-explorer/memgraph-blog-reddit-graph-data-model.png" 
          alt="reddit-network-explorer" 
          title="reddit-network-explorer"
          style="width: 80%"/>
-
-## 👉 Try it out!
-
-- The demo application - **[reddit.memgraph.com](http://reddit.memgraph.com/)**
-  (**Not deployed yet!**)
-- The Memgraph instance - **bolt://reddit.memgraph.com:7687**
-
-To explore the data, please download [Memgraph
-Lab](https://memgraph.com/product/lab). The endpoint is `reddit.memgraph.com`
-and the port is '7687'.
 
 ## 🖥️ Run the app locally
 
