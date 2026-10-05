@@ -22,7 +22,7 @@
 
 <p align="center">
   <a href="https://github.com/memgraph/reddit-network-explorer">
-    <img src="https://public-assets.memgraph.com/github-readme-images/reddit-network-explorer.png" 
+    <img src="img/reddit-network-explorer.png" 
          alt="reddit-network-explorer" 
          title="reddit-network-explorer"
          style="width: 80%"/>
@@ -39,7 +39,7 @@ network analysis algorithms.
 
 ## 📚 Data model
 
-<img src="https://public-assets.memgraph.com/reddit-network-explorer/memgraph-blog-reddit-graph-data-model.png" 
+<img src="img/memgraph-blog-reddit-graph-data-model.png" 
          alt="reddit-network-explorer" 
          title="reddit-network-explorer"
          style="width: 80%"/>
